@@ -7,6 +7,8 @@ const MONGO_PW: &str = "MONGO_PW";
 const MONGO_HOST: &str = "MONGO_HOST";
 const MONGO_PORT: &str = "MONGO_PORT";
 
+pub type Db = Client;
+
 pub async fn init_db() -> Client {
     let client_uri = make_client_uri().unwrap();
     let options = ClientOptions::parse(&client_uri).await.unwrap();

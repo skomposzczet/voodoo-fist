@@ -21,7 +21,7 @@ impl User {
         bson::from_bson(Bson::Document(document)).ok()
     }
 
-    pub async fn add_to_db(db: &Db, user: User) -> Result<String, model::Error> {
+    pub async fn add_to_db(db: &Db, user: &User) -> Result<String, model::Error> {
         let bs = bson::to_bson(&user).map_err(|_| model::Error::BsonError)?;
         let document = bs.as_document().unwrap();
         let userdb = db.database("voodoofist").collection::<mongodb::bson::Document>("user");

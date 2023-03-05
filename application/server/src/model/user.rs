@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 use mongodb::bson::{Document, Bson, oid::ObjectId};
-use std::error::Error;
+use crate::model::Db;
+use crate::model;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
@@ -18,5 +19,14 @@ impl User {
 
     pub fn from_document(document: Document) -> Option<User> {
         bson::from_bson(Bson::Document(document)).ok()
+    }
+
+    pub async fn add_to_db(db: &Db, user: User) -> Result<String, model::Error> {
+        let bs = bson::to_bson(&user).map_err(|_| model::Error::BsonError)?;
+        let document = bs.as_document().unwrap();
+        let userdb = db.database("voodoofist").collection::<mongodb::bson::Document>("user");
+        let inserted = userdb.insert_one(document.to_owned(), None).await.map_err(|_| model::Error::DbError("Failed inserting item"))?;
+        let inserted_id = inserted.inserted_id.as_object_id().unwrap();
+        Ok(format!("{:?}", inserted_id))
     }
 }

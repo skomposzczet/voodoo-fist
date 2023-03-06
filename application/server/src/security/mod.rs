@@ -7,6 +7,8 @@ use thiserror::Error;
 pub enum Error {
     #[error("jwt token creation error")]
     JWTTokenCreationError,
+    #[error("jwt token decode error")]
+    JWTTokenDecodeError,
     #[error("missing secret key environment variable")]
     MissingSecretKey
 }

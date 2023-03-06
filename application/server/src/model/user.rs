@@ -21,12 +21,11 @@ impl User {
         bson::from_bson(Bson::Document(document)).ok()
     }
 
-    pub async fn add_to_db(db: &Db, user: &User) -> Result<String, model::Error> {
+    pub async fn add_to_db(db: &Db, user: &User) -> Result<(), model::Error> {
         let bs = bson::to_bson(&user).map_err(|_| model::Error::BsonError)?;
         let document = bs.as_document().unwrap();
         let userdb = db.database("voodoofist").collection::<mongodb::bson::Document>("user");
-        let inserted = userdb.insert_one(document.to_owned(), None).await.map_err(|_| model::Error::DbError("Failed inserting item"))?;
-        let inserted_id = inserted.inserted_id.as_object_id().unwrap();
-        Ok(format!("{:?}", inserted_id))
+        userdb.insert_one(document.to_owned(), None).await.map_err(|_| model::Error::DbError("Failed inserting item"))?;
+        Ok(())
     }
 }

@@ -21,6 +21,10 @@ impl User {
         bson::from_bson(Bson::Document(document)).ok()
     }
 
+    pub fn id(self: &Self) -> Option<&ObjectId> {
+        self.id.as_ref()
+    }
+
     pub async fn add_to_db(db: &Db, user: &User) -> Result<(), model::Error> {
         let bs = bson::to_bson(&user).map_err(|_| model::Error::BsonError)?;
         let document = bs.as_document().unwrap();

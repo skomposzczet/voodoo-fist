@@ -3,7 +3,9 @@ pub mod user;
 
 pub use db::Db;
 
+#[derive(Debug)]
 pub enum Error {
     BsonError,
-    DbError(&'static str)
+    DbError(&'static str),
+    NoUserWithSuchEmail
 }

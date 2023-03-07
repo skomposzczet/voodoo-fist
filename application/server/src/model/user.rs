@@ -1,3 +1,4 @@
+use bson::doc;
 use serde::{Serialize, Deserialize};
 use mongodb::bson::{Document, Bson, oid::ObjectId};
 use crate::model::Db;
@@ -31,5 +32,21 @@ impl User {
         let userdb = db.database("voodoofist").collection::<mongodb::bson::Document>("user");
         userdb.insert_one(document.to_owned(), None).await.map_err(|_| model::Error::DbError("Failed inserting item"))?;
         Ok(())
+    }
+
+    pub async fn get_by_email(db: &Db, email: &String) -> Result<User, model::Error> {
+        let db = db
+            .database("voodoofist")
+            .collection::<mongodb::bson::Document>("user");
+
+        let document: Document = db.find_one(
+                doc!{"email": email.as_str()}, 
+                None
+            ).await
+            .map_err(|_| model::Error::NoUserWithSuchEmail)?
+            .ok_or(model::Error::NoUserWithSuchEmail)?;
+    
+        let user: User = User::from_document(document).ok_or(model::Error::BsonError)?;
+        Ok(user)
     }
 }

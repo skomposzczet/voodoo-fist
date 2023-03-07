@@ -27,7 +27,7 @@ impl User {
     }
 
     pub fn password_matches(self: &Self, hashed_password: &String) -> bool {
-        self.password.eq(password)
+        self.password.eq(hashed_password)
     }
 
     pub async fn add_to_db(db: &Db, user: &User) -> Result<(), model::Error> {

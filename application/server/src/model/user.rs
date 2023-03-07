@@ -26,6 +26,10 @@ impl User {
         self.id.as_ref()
     }
 
+    pub fn password_matches(self: &Self, hashed_password: &String) -> bool {
+        self.password.eq(password)
+    }
+
     pub async fn add_to_db(db: &Db, user: &User) -> Result<(), model::Error> {
         let bs = bson::to_bson(&user).map_err(|_| model::Error::BsonError)?;
         let document = bs.as_document().unwrap();

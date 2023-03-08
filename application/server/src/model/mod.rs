@@ -8,5 +8,6 @@ pub enum Error {
     BsonError,
     DbError(&'static str),
     NoUserWithSuchEmail,
-    CouldNotConnectToDB
+    CouldNotConnectToDB,
+    InvalidUserID
 }

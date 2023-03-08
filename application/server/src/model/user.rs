@@ -2,6 +2,7 @@ use bson::doc;
 use serde::{Serialize, Deserialize};
 use mongodb::bson::{Document, Bson, oid::ObjectId};
 use crate::model::{Db, db, Error};
+use std::str::FromStr;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
@@ -42,20 +43,24 @@ impl User {
         let document = db::get_by(db, &filter, &String::from("user"))
             .await?
             .ok_or(Error::NoUserWithSuchEmail)?;
+        
         let user = User::from_document(document)
             .ok_or(Error::BsonError)?;
 
         Ok(user)
     }
 
-    pub async fn get_by_id(db: &Db, id: &ObjectId) -> Result<User, Error> {
+    pub async fn get_by_id(db: &Db, id: &String) -> Result<User, Error> {
+        let id = &mongodb::bson::oid::ObjectId::from_str(&id[10..34])
+            .map_err(|_| Error::InvalidUserID)?;
         let filter = doc!{"_id": id};
+
         let document = db::get_by(db, &filter, &String::from("user"))
             .await?
             .ok_or(Error::DbError("Couldnt fetch user:"))?;
+
         let user = User::from_document(document)
             .ok_or(Error::BsonError)?;
-
         Ok(user)
     }
 

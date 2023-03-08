@@ -7,6 +7,7 @@ use dotenv;
 
 const TOKEN_DURATION: i64 = 60;
 const SECRET_KEY: &str = "SECRET";
+const BEARER: &str = "Bearer ";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Claims {
@@ -45,6 +46,13 @@ pub fn decode_jwt(token: &String) -> Result<TokenData::<Claims>, Error> {
         &DecodingKey::from_secret(get_secret()?.as_bytes()), 
         &Validation::default()
     ).map_err(|_| Error::JWTTokenDecodeError)
+}
+
+pub fn jwt_from_header(header: &String) -> Option<String> {
+    if !header.starts_with(BEARER) {
+        return None;
+    }
+    Some(header.trim_start_matches(BEARER).to_owned())
 }
 
 fn get_secret() -> Result<String, Error> {

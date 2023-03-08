@@ -26,6 +26,10 @@ impl User {
         self.id.as_ref()
     }
 
+    pub fn username(self: &Self) -> &String {
+        &self.username
+    }
+
     pub fn password_matches(self: &Self, hashed_password: &String) -> bool {
         self.password.eq(hashed_password)
     }

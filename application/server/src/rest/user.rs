@@ -73,20 +73,19 @@ async fn login_handle(db: Arc<Db>, body: LoginBody) -> Result<Json, Rejection> {
     }
     let token = token::create_jwt(&user)
         .map_err(|_| Error::InnerError)?;
-    Ok(warp::reply::json( &LoginResponse {jwtoken: token}))
+    json_response(&LoginResponse {jwtoken: token})
 }
 
 async fn register_handle(db: Arc<Db>, body: RegisterBody) -> Result<Json, Rejection> {
     let is_unique = is_unique_email(&db, &body.email).await?;
     if !is_unique {
-        let response = json!({"Error": "Email already used"});
-        return Ok(warp::reply::json(&response));
+        let response = json!({"error": "Email already used"});
+        return json_response(&response);
     }
     let new_user = User::new(&body.email, &body.username, &hashed_password(&body.password));
     User::add_to_db(&db, &new_user).await.map_err(|_| Error::InnerError)?;
 
-    let response = json!({"data": "Success"});
-    Ok(warp::reply::json(&response))
+    json_response(&"Success")
 }
 
 async fn is_unique_email(db: &Db, email: &String) -> Result<bool, Error> {
@@ -112,5 +111,10 @@ async fn dashboard_handle(db: Arc<Db>, auth_header: String) -> Result<Json, Reje
         .map_err(|_| Error::InnerError)?;
 
     let response = json!({"username": user.username()});
+    json_response(&response)
+}
+
+fn json_response<T: Serialize>(data: &T) -> Result<Json, Rejection> {
+    let response = json!({"data": data});
     Ok(warp::reply::json(&response))
 }

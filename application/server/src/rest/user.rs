@@ -1,6 +1,10 @@
 use warp::{Filter, reject::Reject, Rejection, reply::Json};
 use std::sync::Arc;
-use crate::{model::{Db, user::User}, security::token::{jwt_from_header, decode_jwt}};
+use crate::model;
+use crate::{
+    model::{Db, user::User},
+    security::token::{jwt_from_header, decode_jwt}
+    };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use crate::security::{hash::hashed_password, token};
@@ -72,18 +76,29 @@ async fn login_handle(db: Arc<Db>, body: LoginBody) -> Result<Json, Rejection> {
     Ok(warp::reply::json( &LoginResponse {jwtoken: token}))
 }
 
-async fn register_handle(db: Arc<Db>, body: RegisterBody) -> Result<String, Rejection> {
-    if !is_unique_email(&db, &body.email).await {
-        return Err(warp::reject::custom(Error::NotUniqueError));
+async fn register_handle(db: Arc<Db>, body: RegisterBody) -> Result<Json, Rejection> {
+    let is_unique = is_unique_email(&db, &body.email).await?;
+    if !is_unique {
+        let response = json!({"Error": "Email already used"});
+        return Ok(warp::reply::json(&response));
     }
     let new_user = User::new(&body.email, &body.username, &hashed_password(&body.password));
     User::add_to_db(&db, &new_user).await.map_err(|_| Error::InnerError)?;
 
-    Ok(String::from("Successfully added new user"))
+    let response = json!({"data": "Success"});
+    Ok(warp::reply::json(&response))
 }
 
-async fn is_unique_email(db: &Db, email: &String) -> bool {
-    true
+async fn is_unique_email(db: &Db, email: &String) -> Result<bool, Error> {
+    match User::get_by_email(db, &email).await {
+        Ok(_) => Ok(false),
+        Err(err) => {
+            match err {
+                model::Error::NoUserWithSuchEmail => Ok(true),
+                _ => Err(Error::InnerError)
+            }
+        }
+    }
 }
 
 async fn dashboard_handle(db: Arc<Db>, auth_header: String) -> Result<Json, Rejection> {

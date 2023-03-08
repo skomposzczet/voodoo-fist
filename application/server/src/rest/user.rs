@@ -31,7 +31,7 @@ pub struct LoginResponse {
     pub jwtoken: String,
 }
 
-pub fn account_paths(db: Arc<Db>) -> impl Filter<Extract = impl warp::Reply, Error = Rejection> + Clone {
+pub fn account_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone {
     let with_db = warp::any().map(move || db.clone());
 
     let register = warp::path("register")

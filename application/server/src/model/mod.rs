@@ -7,5 +7,6 @@ pub use db::Db;
 pub enum Error {
     BsonError,
     DbError(&'static str),
-    NoUserWithSuchEmail
+    NoUserWithSuchEmail,
+    CouldNotConnectToDB
 }

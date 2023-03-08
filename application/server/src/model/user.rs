@@ -1,8 +1,7 @@
 use bson::doc;
 use serde::{Serialize, Deserialize};
 use mongodb::bson::{Document, Bson, oid::ObjectId};
-use crate::model::Db;
-use crate::model;
+use crate::model::{Db, db, Error};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
@@ -30,27 +29,34 @@ impl User {
         self.password.eq(hashed_password)
     }
 
-    pub async fn add_to_db(db: &Db, user: &User) -> Result<(), model::Error> {
-        let bs = bson::to_bson(&user).map_err(|_| model::Error::BsonError)?;
+    pub async fn add_to_db(db: &Db, user: &User) -> Result<(), Error> {
+        let bs = bson::to_bson(&user).map_err(|_| Error::BsonError)?;
         let document = bs.as_document().unwrap();
         let userdb = db.database("voodoofist").collection::<mongodb::bson::Document>("user");
-        userdb.insert_one(document.to_owned(), None).await.map_err(|_| model::Error::DbError("Failed inserting item"))?;
+        userdb.insert_one(document.to_owned(), None).await.map_err(|_| Error::DbError("Failed inserting item"))?;
         Ok(())
     }
 
-    pub async fn get_by_email(db: &Db, email: &String) -> Result<User, model::Error> {
-        let db = db
-            .database("voodoofist")
-            .collection::<mongodb::bson::Document>("user");
+    pub async fn get_by_email(db: &Db, email: &String) -> Result<User, Error> {
+        let filter = doc!{"email": email.as_str()};
+        let document = db::get_by(db, &filter, &String::from("user"))
+            .await?
+            .ok_or(Error::NoUserWithSuchEmail)?;
+        let user = User::from_document(document)
+            .ok_or(Error::BsonError)?;
 
-        let document: Document = db.find_one(
-                doc!{"email": email.as_str()}, 
-                None
-            ).await
-            .map_err(|_| model::Error::NoUserWithSuchEmail)?
-            .ok_or(model::Error::NoUserWithSuchEmail)?;
-    
-        let user: User = User::from_document(document).ok_or(model::Error::BsonError)?;
         Ok(user)
     }
+
+    pub async fn get_by_id(db: &Db, id: &ObjectId) -> Result<User, Error> {
+        let filter = doc!{"_id": id};
+        let document = db::get_by(db, &filter, &String::from("user"))
+            .await?
+            .ok_or(Error::DbError("Couldnt fetch user:"))?;
+        let user = User::from_document(document)
+            .ok_or(Error::BsonError)?;
+
+        Ok(user)
+    }
+
 }

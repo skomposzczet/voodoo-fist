@@ -1,7 +1,7 @@
 use mongodb::{Client, options::{ClientOptions}};
 use crate::model::Error;
 use dotenv;
-use bson::doc;
+use bson::{doc, Document};
 
 const MONGO_USER: &str = "MONGO_USER";
 const MONGO_PW: &str = "MONGO_PW";
@@ -17,6 +17,18 @@ pub async fn init_db() -> Db {
     check_db_conn(&client).await.unwrap();
 
     client
+}
+
+pub async fn get_by(db: &Db, filter: &Document, collection: &String) -> Result<Option<Document>, Error> {
+    let db = db
+        .database("voodoofist")
+        .collection::<mongodb::bson::Document>(collection);
+
+    let document = db.find_one(filter.clone(), None)
+        .await
+        .map_err(|_| Error::NoUserWithSuchEmail)?;
+    
+    Ok(document)
 }
 
 fn make_client_uri() -> Result<String, Box<dyn std::error::Error>> {

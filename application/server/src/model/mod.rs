@@ -1,5 +1,6 @@
 pub mod db;
 pub mod user;
+pub mod list;
 
 pub use db::Db;
 

@@ -20,6 +20,11 @@ enum Error{
 }
 impl Reject for Error {}
 
+pub fn routes(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone {
+    user::account_paths(db.clone())
+        .or(todo::todo_list_paths(db.clone()))
+}
+
 fn json_response<T: Serialize>(data: &T) -> Result<Json, Rejection> {
     let response = json!({"data": data});
     Ok(warp::reply::json(&response))

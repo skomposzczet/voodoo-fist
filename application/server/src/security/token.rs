@@ -2,6 +2,7 @@ use crate::model::user::User;
 use serde::{Deserialize, Serialize};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, Validation, TokenData};
+use warp::{hyper::{HeaderMap, header::AUTHORIZATION}, http::HeaderValue};
 use super::Error;
 use dotenv;
 
@@ -48,11 +49,15 @@ pub fn decode_jwt(token: &String) -> Result<TokenData::<Claims>, Error> {
     ).map_err(|_| Error::JWTTokenDecodeError)
 }
 
-pub fn jwt_from_header(header: &String) -> Option<String> {
-    if !header.starts_with(BEARER) {
+pub fn jwt_from_header(headers: &HeaderMap<HeaderValue>) -> Option<String> {
+    let header = headers.get(AUTHORIZATION)?;
+    let auth_header = std::str::from_utf8(header.as_bytes())
+        .ok()?;
+
+    if !auth_header.starts_with(BEARER) {
         return None;
     }
-    Some(header.trim_start_matches(BEARER).to_owned())
+    Some(auth_header.trim_start_matches(BEARER).to_owned())
 }
 
 fn get_secret() -> Result<String, Error> {

@@ -21,7 +21,7 @@ impl Claims {
         Claims {
             sub: format!("{:?}", user.id().unwrap()),
             exp: Utc::now()
-                .checked_add_signed(Duration::seconds(TOKEN_DURATION))
+                .checked_add_signed(Duration::minutes(TOKEN_DURATION))
                 .expect("Token expiration date exceeded")
                 .timestamp() as usize
         }

@@ -9,16 +9,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use crate::security::{hash::hashed_password, token};
 use std::str::FromStr;
-
-#[derive(Debug)]
-enum Error{
-    NotUniqueError,
-    InnerError,
-    Unauthorized,
-    NoUserWithSuchEmail,
-    InvalidHeader
-}
-impl Reject for Error {}
+use crate::rest::{Error, json_response};
 
 #[derive(Deserialize, Debug)]
 struct RegisterBody {
@@ -112,9 +103,4 @@ async fn dashboard_handle(db: Arc<Db>, auth_header: String) -> Result<Json, Reje
 
     let response = json!({"username": user.username()});
     json_response(&response)
-}
-
-fn json_response<T: Serialize>(data: &T) -> Result<Json, Rejection> {
-    let response = json!({"data": data});
-    Ok(warp::reply::json(&response))
 }

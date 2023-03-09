@@ -4,6 +4,8 @@ use mongodb::bson::{Document, Bson, oid::ObjectId};
 use crate::model::{Db, db, Error};
 use std::str::FromStr;
 
+use super::objectid_from_str;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
@@ -55,7 +57,7 @@ impl User {
     }
 
     pub async fn get_by_id(db: &Db, id: &String) -> Result<User, Error> {
-        let id = &mongodb::bson::oid::ObjectId::from_str(&id[10..34])
+        let id = objectid_from_str(id)
             .map_err(|_| Error::InvalidUserID)?;
         let filter = doc!{"_id": id};
 

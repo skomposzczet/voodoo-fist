@@ -15,7 +15,8 @@ enum Error{
     InnerError,
     Unauthorized,
     NoUserWithSuchEmail,
-    InvalidHeader
+    InvalidHeader,
+    BodyError(&'static str),
 }
 impl Reject for Error {}
 

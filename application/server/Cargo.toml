@@ -18,3 +18,4 @@ mongodb = "2.1"
 bson = { version = "2", features = ["chrono-0_4"] } 
 dotenv = "0.15.0"
 rand = "0.8.5"
+futures = "0.3.26"

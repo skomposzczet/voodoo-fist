@@ -1,7 +1,8 @@
-use mongodb::{Client, options::{ClientOptions}};
+use mongodb::{Client, options::{ClientOptions, FindOptions}};
 use crate::model::Error;
 use dotenv;
 use bson::{doc, Document};
+use futures::TryStreamExt;
 
 const MONGO_USER: &str = "MONGO_USER";
 const MONGO_PW: &str = "MONGO_PW";
@@ -26,9 +27,23 @@ pub async fn get_by(db: &Db, filter: &Document, collection: &String) -> Result<O
 
     let document = db.find_one(filter.clone(), None)
         .await
-        .map_err(|_| Error::NoUserWithSuchEmail)?;
+        .map_err(|_| Error::DbError("Couldn't fetch from db"))?;
     
     Ok(document)
+}
+
+pub async fn get_all_in_vec(db: &Db, filter: Document, options: impl Into<Option<FindOptions>>, collection: &String) -> Result<Vec<Document>, Error> {
+    let db = db
+        .database("voodoofist")
+        .collection::<mongodb::bson::Document>(collection);
+
+    let cursor = db.find(filter, options).await
+        .map_err(|_| Error::DbError("Couldn't fetch from db"))?;
+
+    let results: Vec<Document> = cursor.try_collect().await
+        .map_err(|_| Error::DbError("Couldn't fetch from db"))?;
+
+    Ok(results)
 }
 
 fn make_client_uri() -> Result<String, Box<dyn std::error::Error>> {

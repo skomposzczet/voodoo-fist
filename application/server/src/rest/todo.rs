@@ -12,42 +12,35 @@ use serde_json::json;
 
 pub fn todo_list_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone {
     let with_db = warp::any().map(move || db.clone());
+    let common = with_db.clone().and(with_auth());
 
-    let get_list = warp::path("list")
+    let get_lists = warp::path("lists").and(warp::path::end())
         .and(warp::get())
-        .and(warp::path::end())
-        .and(with_db.clone())
-        .and(with_auth())
-        .and_then(get_list_handle);
+        .and(common.clone())
+        .and_then(get_lists_handle);
 
-    let new_list = warp::path("list")
+    let new_list = warp::path("list").and(warp::path::end())
         .and(warp::post())
-        .and(warp::path::end())
-        .and(with_db.clone())
-        .and(with_auth())
+        .and(common.clone())
         .and(warp::body::json())
         .and_then(post_list_handle);
 
-    let delete_list = warp::path("list")
+    let delete_list = warp::path("list").and(warp::path::end())
         .and(warp::delete())
-        .and(warp::path::end())
-        .and(with_db.clone())
-        .and(with_auth())
+        .and(common.clone())
         .and(warp::body::json())
         .and_then(delete_handle);
 
-    let patch_list = warp::path("list")
+    let patch_list = warp::path("list").and(warp::path::end())
         .and(warp::patch())
-        .and(warp::path::end())
-        .and(with_db.clone())
-        .and(with_auth())
+        .and(common.clone())
         .and(warp::body::json())
         .and_then(patch_handle);
 
-    get_list.or(new_list).or(delete_list).or(patch_list)
+    get_lists.or(new_list).or(delete_list).or(patch_list)
 }
 
-async fn get_list_handle(db: Arc<Db>, oid: String) -> Result<Json, Rejection> {
+async fn get_lists_handle(db: Arc<Db>, oid: String) -> Result<Json, Rejection> {
     let lists = List::get_users_lists(&db, &oid).await
         .map_err(|_| Error::InnerError)?;
 

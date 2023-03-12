@@ -29,23 +29,20 @@ pub struct LoginResponse {
 pub fn account_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone {
     let with_db = warp::any().map(move || db.clone());
 
-    let register = warp::path("register")
+    let register = warp::path("register").and(warp::path::end())
         .and(warp::post())
-        .and(warp::path::end())
         .and(with_db.clone())
         .and(warp::body::json())
         .and_then(register_handle);
 
-    let login = warp::path("login")
+    let login = warp::path("login").and(warp::path::end())
         .and(warp::post())
-        .and(warp::path::end())
         .and(with_db.clone())
         .and(warp::body::json())
         .and_then(login_handle);
 
-    let dashboard = warp::path("dashboard")
+    let dashboard = warp::path("dashboard").and(warp::path::end())
         .and(warp::get())
-        .and(warp::path::end())
         .and(with_db.clone())
         .and(with_auth())
         .and_then(dashboard_handle);

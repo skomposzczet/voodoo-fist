@@ -1,6 +1,6 @@
 use bson::{doc, bson, oid::ObjectId, Bson, Document};
 use serde::{Serialize, Deserialize};
-use super::{Db, Error, user::User, db, objectid_from_str};
+use super::{Db, Error, user::User, db, objectid_from_str, from_document};
 use rand::random;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -61,10 +61,6 @@ impl List {
         })
     }
 
-    pub fn from_document(document: Document) -> Option<List> {
-        bson::from_bson(Bson::Document(document)).ok()
-    }
-
     pub async fn add_to_db(db: &Db, list: &List) -> Result<(), Error>{
         let document = bson::to_bson(&list).map_err(|_| Error::BsonError)?
             .as_document().ok_or(Error::BsonError)?
@@ -83,7 +79,7 @@ impl List {
         let documents = db::get_all_in_vec(db, filter, None, &String::from("list")).await?;
         let mut lists: Vec<List> = vec![];
         for doc in documents {
-            let list = List::from_document(doc.clone()).ok_or(Error::BsonError)?;
+            let list = from_document(doc.clone())?;
             lists.push(list);
         }
 

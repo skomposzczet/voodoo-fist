@@ -3,8 +3,8 @@ use serde::{Serialize, Deserialize};
 use mongodb::bson::{Document, Bson, oid::ObjectId};
 use crate::model::{Db, db, Error};
 use std::str::FromStr;
+use super::{objectid_from_str, from_document};
 
-use super::objectid_from_str;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
@@ -18,10 +18,6 @@ pub struct User {
 impl User {
     pub fn new(email: &String, username: &String, password: &String) -> User {
         User {id: None, email: email.clone(), username: username.clone(), password: password.clone() }
-    }
-
-    pub fn from_document(document: Document) -> Option<User> {
-        bson::from_bson(Bson::Document(document)).ok()
     }
 
     pub fn id(self: &Self) -> Option<&ObjectId> {
@@ -50,8 +46,7 @@ impl User {
             .await?
             .ok_or(Error::NoUserWithSuchEmail)?;
         
-        let user = User::from_document(document)
-            .ok_or(Error::BsonError)?;
+        let user = from_document(document)?;
 
         Ok(user)
     }
@@ -65,8 +60,7 @@ impl User {
             .await?
             .ok_or(Error::DbError("Couldnt fetch user:"))?;
 
-        let user = User::from_document(document)
-            .ok_or(Error::BsonError)?;
+        let user = from_document(document)?;
         Ok(user)
     }
 

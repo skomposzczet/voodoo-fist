@@ -95,24 +95,21 @@ impl List {
     }
 
     pub async fn update(db: &Db, patch: &ListPatch) -> Result<u64, Error>{
-        let db = db.database("voodoofist").collection::<Document>("list");
-        let filter = doc! {"_id": patch._id};
-        let mut modified: u64 = 0;
-
+        let mut update = Document::new();
         if let Some(new_title) = &patch.title {
-            let update = doc! {"$set": {"title": new_title}};
-            let count = db.update_one(filter.clone(), update, None).await
-                .map_err(|_| Error::DbError("Couldn't patch list"))?.modified_count;
-            modified = std::cmp::max(modified, count);
+            update.insert("title", new_title);
         }
-
         if let Some(new_color) = patch.color.clone() {
-            let update = doc! {"$set": {"color": new_color}};
-            let count = db.update_one(filter.clone(), update, None).await
-                .map_err(|_| Error::DbError("Couldn't patch list"))?.modified_count;
-            modified = std::cmp::max(modified, count);
+            update.insert("color", new_color);
         }
         
-        Ok(modified)
+        let update = doc! {"$set": update};
+        let filter = doc! {"_id": patch._id};
+        let db = db.database("voodoofist").collection::<Document>("list");
+
+        let count = db.update_one(filter, update, None).await
+                .map_err(|_| Error::DbError("Couldn't patch list"))?.modified_count;
+        
+        Ok(count)
     }
 }

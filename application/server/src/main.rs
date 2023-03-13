@@ -1,12 +1,9 @@
-#![allow(unused)]
-
 mod model;
 mod security;
 mod rest;
+mod error;
 
 use std::error::Error;
-use model::Db;
-use warp::Filter; 
 use std::sync::Arc;
 
 #[tokio::main]

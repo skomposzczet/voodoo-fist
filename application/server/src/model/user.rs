@@ -1,8 +1,7 @@
 use bson::doc;
 use serde::{Serialize, Deserialize};
-use mongodb::bson::{Document, Bson, oid::ObjectId};
+use mongodb::bson::oid::ObjectId;
 use crate::model::{Db, db, Error};
-use std::str::FromStr;
 use super::{objectid_from_str, from_document};
 
 

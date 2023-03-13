@@ -12,7 +12,6 @@ use crate::{security::token::{jwt_from_header, decode_jwt}, model::Db};
 
 #[derive(Debug)]
 enum Error{
-    NotUniqueError,
     InnerError,
     Unauthorized,
     NoUserWithSuchEmail,

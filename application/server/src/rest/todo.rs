@@ -1,14 +1,11 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use bson::oid::ObjectId;
-use futures::TryFutureExt;
-use warp::body::json;
 use warp::{reply::Json, Rejection, Filter};
 use crate::model::list::ListPatch;
 use crate::model::todo_item::TodoItem;
-use crate::model::{Db, user::User, list::List};
+use crate::model::{Db, list::List};
 use crate::rest::{Error, json_response, with_auth};
-use crate::security::token::{jwt_from_header, decode_jwt};
 use serde_json::json;
 
 pub fn todo_list_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone {
@@ -62,7 +59,7 @@ async fn post_list_handle(db: Arc<Db>, oid: String, body: HashMap<String, String
     json_response(&content)
 }
 
-async fn delete_handle(db: Arc<Db>, oid: String, list_oid: ObjectId) -> Result<Json, Rejection> {
+async fn delete_handle(db: Arc<Db>, _oid: String, list_oid: ObjectId) -> Result<Json, Rejection> {
     let items_count = TodoItem::delete_all_from_list(db.clone(), &list_oid).await
         .map_err(|_| Error::InnerError)?;
     let count = List::delete(&db, &list_oid).await
@@ -71,7 +68,7 @@ async fn delete_handle(db: Arc<Db>, oid: String, list_oid: ObjectId) -> Result<J
     json_response(&content)
 }
 
-async fn patch_handle(db: Arc<Db>, oid: String, list: ListPatch) -> Result<Json, Rejection> {
+async fn patch_handle(db: Arc<Db>, _oid: String, list: ListPatch) -> Result<Json, Rejection> {
     let count = List::update(&db, &list).await
         .map_err(|_| Error::InnerError)?;
     let content = json!({"Patched list": list, "Count": count});

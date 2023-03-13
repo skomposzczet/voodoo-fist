@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
-use bson::{Document, Bson, oid::ObjectId, doc};
-use futures::TryFutureExt;
-use super::{Error, list::List, Db, objectid_from_str, db, from_document};
+use bson::{Document, oid::ObjectId, doc};
+use super::{Error, Db, db, from_document};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]

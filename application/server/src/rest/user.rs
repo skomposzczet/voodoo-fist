@@ -1,11 +1,10 @@
-use warp::{Filter, reject::Reject, Rejection, reply::Json};
+use warp::{Filter, Rejection, reply::Json};
 use std::sync::Arc;
 use crate::model;
 use crate::model::{Db, user::User};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use crate::security::{hash::hashed_password, token};
-use std::str::FromStr;
 use crate::rest::{Error, json_response, with_auth};
 
 #[derive(Deserialize, Debug)]

@@ -1,6 +1,6 @@
 use bson::{doc, bson, oid::ObjectId, Bson, Document};
 use serde::{Serialize, Deserialize};
-use super::{Db, Error, user::User, db, objectid_from_str, from_document};
+use super::{Db, Error, db, objectid_from_str, from_document};
 use rand::random;
 
 #[derive(Serialize, Deserialize, Debug)]

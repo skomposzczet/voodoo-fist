@@ -41,8 +41,7 @@ async fn auth(auth_header: HeaderMap<HeaderValue>) -> Result<String, warp::Rejec
     let token = jwt_from_header(&auth_header)
         .ok_or(Error::InvalidHeader)?;
 
-    let token_data = decode_jwt(&token)
-        .map_err(|_| Error::InnerError)?;
+    let token_data = decode_jwt(&token)?;
 
     Ok(token_data.claims.sub())
 }

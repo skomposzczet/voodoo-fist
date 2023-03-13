@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, Validation, TokenData};
 use warp::{hyper::{HeaderMap, header::AUTHORIZATION}, http::HeaderValue};
-use super::Error;
 use dotenv;
+use crate::error::Error;
 
 const TOKEN_DURATION: i64 = 60;
 const SECRET_KEY: &str = "SECRET";
@@ -38,7 +38,7 @@ pub fn create_jwt(user: &User) -> Result<String, Error> {
         &Header::default(), 
         &claims, 
         &EncodingKey::from_secret(get_secret()?.as_bytes())
-    ).map_err(|_| Error::JWTTokenCreationError)
+    ).map_err(|err| Error::JTTokenError(err))
 }
 
 pub fn decode_jwt(token: &String) -> Result<TokenData::<Claims>, Error> {
@@ -46,7 +46,7 @@ pub fn decode_jwt(token: &String) -> Result<TokenData::<Claims>, Error> {
         token, 
         &DecodingKey::from_secret(get_secret()?.as_bytes()), 
         &Validation::default()
-    ).map_err(|_| Error::JWTTokenDecodeError)
+    ).map_err(|err| Error::JTTokenError(err))
 }
 
 pub fn jwt_from_header(headers: &HeaderMap<HeaderValue>) -> Option<String> {
@@ -61,5 +61,5 @@ pub fn jwt_from_header(headers: &HeaderMap<HeaderValue>) -> Option<String> {
 }
 
 fn get_secret() -> Result<String, Error> {
-    dotenv::var(SECRET_KEY).map_err(|_| Error::MissingSecretKey)
+    dotenv::var(SECRET_KEY).map_err(|err| Error::EnvError(err))
 }

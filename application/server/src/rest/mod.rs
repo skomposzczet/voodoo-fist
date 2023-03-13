@@ -1,5 +1,6 @@
 pub mod user;
 pub mod todo;
+pub mod todo_item;
 
 use std::sync::Arc;
 
@@ -23,6 +24,7 @@ impl Reject for Error {}
 pub fn routes(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone {
     user::account_paths(db.clone())
         .or(todo::todo_list_paths(db.clone()))
+        .or(todo_item::todo_item_paths(db.clone()))
 }
 
 fn json_response<T: Serialize>(data: &T) -> Result<Json, Rejection> {

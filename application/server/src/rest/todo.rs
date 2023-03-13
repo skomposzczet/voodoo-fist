@@ -5,6 +5,7 @@ use futures::TryFutureExt;
 use warp::body::json;
 use warp::{reply::Json, Rejection, Filter};
 use crate::model::list::ListPatch;
+use crate::model::todo_item::TodoItem;
 use crate::model::{Db, user::User, list::List};
 use crate::rest::{Error, json_response, with_auth};
 use crate::security::token::{jwt_from_header, decode_jwt};
@@ -62,9 +63,11 @@ async fn post_list_handle(db: Arc<Db>, oid: String, body: HashMap<String, String
 }
 
 async fn delete_handle(db: Arc<Db>, oid: String, list_oid: ObjectId) -> Result<Json, Rejection> {
+    let items_count = TodoItem::delete_all_from_list(db.clone(), &list_oid).await
+        .map_err(|_| Error::InnerError)?;
     let count = List::delete(&db, &list_oid).await
         .map_err(|_| Error::InnerError)?;
-    let content = json!({"Deleted list": list_oid, "Count": count});
+    let content = json!({"Deleted list": list_oid, "Count": count, "Deleted items count": items_count});
     json_response(&content)
 }
 

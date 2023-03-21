@@ -1,15 +1,52 @@
 <template>
   <nav>
     <h1>VooDoo</h1>
+    <form @submit="foo">
+      <input type="text" placeholder="login" v-model="login">
+      <input type="password" placeholder="password" v-model="pw">
+      <button type="submit">Login</button>
+    </form>
+    <button @click="bar()">Test</button>
   </nav>
-  <router-view/>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import axios from 'axios';
 
 export default defineComponent({
   name: 'app',
+  data() {
+    return {
+      login: '',
+      pw: '',
+    }
+  },
+  methods: {
+    async foo() {
+      const url = 'api/login'
+      const data = {
+        email: this.login,
+        password: this.pw,
+      };
+      const res = await axios.post(url, data, {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json;charset=UTF-8",
+          },
+        });
+      localStorage.setItem('token', res.data.data.jwtoken);
+    },
+    async bar() {
+      const config = {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      };
+      axios.get( 
+        'api/lists',
+        config
+      ).then(console.log).catch(console.log);
+    }
+  }
 })
 
 </script>

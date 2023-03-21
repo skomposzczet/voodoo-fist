@@ -27,7 +27,7 @@ pub async fn get_by(db: &Db, filter: &Document, collection: &String) -> Result<O
 
     let document = db.find_one(filter.clone(), None)
         .await
-        .map_err(|_| Error::DbError("Couldn't fetch from db"))?;
+        .map_err(|_| Error::DbError("find", filter.to_string()))?;
     
     Ok(document)
 }
@@ -37,11 +37,11 @@ pub async fn get_all_in_vec(db: &Db, filter: Document, options: impl Into<Option
         .database("voodoofist")
         .collection::<mongodb::bson::Document>(collection);
 
-    let cursor = db.find(filter, options).await
-        .map_err(|_| Error::DbError("Couldn't fetch from db"))?;
+    let cursor = db.find(filter.clone(), options).await
+        .map_err(|_| Error::DbError("find", filter.to_string()))?;
 
     let results: Vec<Document> = cursor.try_collect().await
-        .map_err(|_| Error::DbError("Couldn't fetch from db"))?;
+        .map_err(|_| Error::DbError("find", filter.to_string()))?;
 
     Ok(results)
 }

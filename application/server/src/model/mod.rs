@@ -8,15 +8,23 @@ pub use db::Db;
 use serde::de::DeserializeOwned;
 use std::str::FromStr;
 use bson::{oid::ObjectId, Document, Bson};
+use thiserror::Error;
+use crate::error::BsonError;
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum Error {
-    BsonError,
-    DbError(&'static str),
+    #[error(transparent)]
+    BsonConvError (#[from] BsonError),
+    #[error("Couldn't {0} DB: {1}")]
+    DbError(&'static str, String),
+    #[error("No user with such email")]
     NoUserWithSuchEmail,
+    #[error("Failed connecting to db")]
     CouldNotConnectToDB,
+    #[error("Invalid ObjectId")]
     InvalidOID,
-    InvalidUserID,
+    #[error("Already in use: {0}")]
+    NotUnique(&'static str)
 }
 
 pub fn objectid_from_str(id: &str) -> Result<ObjectId, Error> {
@@ -24,6 +32,6 @@ pub fn objectid_from_str(id: &str) -> Result<ObjectId, Error> {
         .map_err(|_| Error::InvalidOID)
 }
 
-pub fn from_document<T: DeserializeOwned>(document: Document) -> Result<T, Error> {
-    bson::from_bson(Bson::Document(document)).map_err(|_| Error::BsonError)
+pub fn from_document<T: DeserializeOwned>(document: Document) -> Result<T, BsonError> {
+    bson::from_bson(Bson::Document(document)).map_err(|_| BsonError::ConversionError)
 }

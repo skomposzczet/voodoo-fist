@@ -2,6 +2,7 @@ use bson::{doc, bson, oid::ObjectId, Bson, Document};
 use serde::{Serialize, Deserialize};
 use super::{Db, Error, db, objectid_from_str, from_document};
 use rand::random;
+use crate::error::BsonError;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Rgb {
@@ -62,14 +63,18 @@ impl List {
     }
 
     pub async fn add_to_db(db: &Db, list: &List) -> Result<(), Error>{
-        let document = bson::to_bson(&list).map_err(|_| Error::BsonError)?
-            .as_document().ok_or(Error::BsonError)?
+        let document = bson::to_bson(&list)
+            .map_err(|err| BsonError::from(err))?
+            .as_document().ok_or(BsonError::ConversionError)?
             .to_owned();
+
         let listdb = db
             .database("voodoofist")
             .collection::<mongodb::bson::Document>("list");
+
         listdb.insert_one(document, None).await
-            .map_err(|_| Error::DbError("Failed inserting list"))?;
+            .map_err(|_| Error::DbError("insert", format!("{:?}", list)))?;
+
         Ok(())
     }
 
@@ -90,7 +95,7 @@ impl List {
         let db = db.database("voodoofist").collection::<Document>("list");
         let filter = doc! {"_id": oid};
         let result = db.delete_one(filter, None).await
-            .map_err(|_| Error::DbError("Couldn't delete list"))?;
+            .map_err(|_| Error::DbError("delete", format!("{:?}", oid)))?;
         Ok(result.deleted_count)
     }
 
@@ -108,7 +113,7 @@ impl List {
         let db = db.database("voodoofist").collection::<Document>("list");
 
         let count = db.update_one(filter, update, None).await
-                .map_err(|_| Error::DbError("Couldn't patch list"))?.modified_count;
+                .map_err(|_| Error::DbError("patch", format!("{:?}", patch)))?.modified_count;
         
         Ok(count)
     }

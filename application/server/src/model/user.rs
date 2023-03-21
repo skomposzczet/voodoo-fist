@@ -2,7 +2,7 @@ use bson::doc;
 use serde::{Serialize, Deserialize};
 use mongodb::bson::oid::ObjectId;
 use crate::model::{Db, db, Error};
-use super::{objectid_from_str, from_document};
+use super::{objectid_from_str, from_document, BsonError};
 
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -32,10 +32,14 @@ impl User {
     }
 
     pub async fn add_to_db(db: &Db, user: &User) -> Result<(), Error> {
-        let bs = bson::to_bson(&user).map_err(|_| Error::BsonError)?;
+        let bs = bson::to_bson(&user).map_err(|err| BsonError::from(err))?;
         let document = bs.as_document().unwrap();
-        let userdb = db.database("voodoofist").collection::<mongodb::bson::Document>("user");
-        userdb.insert_one(document.to_owned(), None).await.map_err(|_| Error::DbError("Failed inserting item"))?;
+        let userdb = db
+            .database("voodoofist")
+            .collection::<mongodb::bson::Document>("user");
+
+        userdb.insert_one(document.to_owned(), None).await
+            .map_err(|_| Error::DbError("insert", format!("{:?}", user)))?;
         Ok(())
     }
 
@@ -52,12 +56,12 @@ impl User {
 
     pub async fn get_by_id(db: &Db, id: &String) -> Result<User, Error> {
         let id = objectid_from_str(id)
-            .map_err(|_| Error::InvalidUserID)?;
+            .map_err(|_| Error::InvalidOID)?;
         let filter = doc!{"_id": id};
 
         let document = db::get_by(db, &filter, &String::from("user"))
             .await?
-            .ok_or(Error::DbError("Couldnt fetch user:"))?;
+            .ok_or(Error::DbError("find", id.to_string()))?;
 
         let user = from_document(document)?;
         Ok(user)

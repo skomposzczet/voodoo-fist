@@ -1,11 +1,12 @@
 use warp::{Filter, Rejection, reply::Json};
 use std::sync::Arc;
+use crate::error::AuthorizationError;
 use crate::model;
 use crate::model::{Db, user::User};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use crate::security::{hash::hashed_password, token};
-use crate::rest::{Error, json_response, with_auth};
+use crate::rest::{json_response, with_auth};
 
 #[derive(Deserialize, Debug)]
 struct RegisterBody {
@@ -51,42 +52,39 @@ pub fn account_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), 
 
 async fn login_handle(db: Arc<Db>, body: LoginBody) -> Result<Json, Rejection> {
     let user = User::get_by_email(&db, &body.email).await
-        .map_err(|_| warp::reject::custom(Error::NoUserWithSuchEmail))?;
+        .map_err(|_| AuthorizationError::InvalidCredentials("email"))?;
     if !user.password_matches(&hashed_password(&body.password)) {
-        return Err(warp::reject::custom(Error::Unauthorized));
+        return Err(AuthorizationError::InvalidCredentials("password").into());
     }
-    let token = token::create_jwt(&user)
-        .map_err(|_| Error::InnerError)?;
+    let token = token::create_jwt(&user)?;
     json_response(&LoginResponse {jwtoken: token})
 }
 
 async fn register_handle(db: Arc<Db>, body: RegisterBody) -> Result<Json, Rejection> {
     let is_unique = is_unique_email(&db, &body.email).await?;
     if !is_unique {
-        let response = json!({"error": "Email already used"});
-        return json_response(&response);
+        return Err(model::Error::NotUnique("email").into());
     }
     let new_user = User::new(&body.email, &body.username, &hashed_password(&body.password));
-    User::add_to_db(&db, &new_user).await.map_err(|_| Error::InnerError)?;
+    User::add_to_db(&db, &new_user).await?;
 
     json_response(&"Success")
 }
 
-async fn is_unique_email(db: &Db, email: &String) -> Result<bool, Error> {
+async fn is_unique_email(db: &Db, email: &String) -> Result<bool, model::Error> {
     match User::get_by_email(db, &email).await {
         Ok(_) => Ok(false),
         Err(err) => {
             match err {
                 model::Error::NoUserWithSuchEmail => Ok(true),
-                _ => Err(Error::InnerError)
+                _ => Err(err)
             }
         }
     }
 }
 
 async fn dashboard_handle(db: Arc<Db>, id: String) -> Result<Json, Rejection> {
-    let user = User::get_by_id(&db, &id).await
-        .map_err(|_| Error::InnerError)?;
+    let user = User::get_by_id(&db, &id).await?;
 
     let response = json!({"username": user.username()});
     json_response(&response)

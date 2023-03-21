@@ -2,28 +2,84 @@ pub mod user;
 pub mod todo;
 pub mod todo_item;
 
-use std::sync::Arc;
+use std::{sync::Arc, convert::Infallible};
 
 use serde::Serialize;
 use serde_json::json;
-use warp::{reject::Reject, reply::Json, Rejection, Filter, hyper::HeaderMap, http::HeaderValue};
-
+use warp::{reply::Json, Rejection, Filter, hyper::{HeaderMap, StatusCode}, http::HeaderValue, Reply};
+use crate::{model, error::AuthorizationError};
+use crate::error;
 use crate::{security::token::{jwt_from_header, decode_jwt}, model::Db};
 
-#[derive(Debug)]
-enum Error{
-    InnerError,
-    Unauthorized,
-    NoUserWithSuchEmail,
-    InvalidHeader,
-    BodyError(&'static str),
+#[derive(Debug, Clone)]
+pub struct WebErrorMessage {
+	kind: &'static str,
+	message: String,
+    status_code: StatusCode,
 }
-impl Reject for Error {}
+impl warp::reject::Reject for WebErrorMessage {}
 
-pub fn routes(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone {
+impl WebErrorMessage {
+    pub fn unknown() -> WebErrorMessage {
+        WebErrorMessage{
+            kind: "Unkown error", 
+            message: String::from("unknown"),
+            status_code: StatusCode::BAD_REQUEST
+        }
+    }
+	pub fn rejection(kind: &'static str, message: String, status_code: StatusCode) -> warp::Rejection {
+		warp::reject::custom(WebErrorMessage {kind, message, status_code})
+	}
+}
+
+impl From<model::Error> for warp::Rejection {
+	fn from(other: model::Error) -> Self {
+		WebErrorMessage::rejection(
+            "model::Error",
+            format!("{}", other),
+            StatusCode::BAD_REQUEST,
+        )
+	}
+}
+impl From<error::Error> for warp::Rejection {
+	fn from(other: error::Error) -> Self {
+		WebErrorMessage::rejection(
+            "error::Error",
+            format!("{}", other),
+            StatusCode::BAD_REQUEST,
+        )
+	}
+}
+impl From<error::AuthorizationError> for warp::Rejection {
+	fn from(other: error::AuthorizationError) -> Self {
+		WebErrorMessage::rejection(
+            "error::AuthError",
+            format!("{}", other),
+            StatusCode::UNAUTHORIZED,
+        )
+	}
+}
+
+pub fn routes(db: Arc<Db>) -> impl Filter<Extract = (impl Reply,), Error = Infallible> + Clone {
     user::account_paths(db.clone())
         .or(todo::todo_list_paths(db.clone()))
         .or(todo_item::todo_item_paths(db.clone()))
+        .recover(handle_rejection)
+}
+
+async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
+	debug!("ERROR - {:?}", err);
+
+    let error_message = match err.find::<WebErrorMessage>() {
+        Some(err) => err.clone(),
+        None => WebErrorMessage::unknown()
+    };
+    info!("{}", error_message.message);
+
+    let result = json!({"error": error_message.kind});
+	let result = warp::reply::json(&result);
+
+	Ok(warp::reply::with_status(result, error_message.status_code))
 }
 
 fn json_response<T: Serialize>(data: &T) -> Result<Json, Rejection> {
@@ -38,9 +94,17 @@ fn with_auth() -> impl Filter<Extract = (String,), Error = Rejection> + Clone {
 
 async fn auth(auth_header: HeaderMap<HeaderValue>) -> Result<String, warp::Rejection> {
     let token = jwt_from_header(&auth_header)
-        .ok_or(Error::InvalidHeader)?;
+        .ok_or(AuthorizationError::MissingAuthHeader)?;
 
-    let token_data = decode_jwt(&token)?;
+    let token_data = match decode_jwt(&token) {
+        Ok(data) => data,
+        Err(err) => {
+            match err {
+                error::Error::JWTokenError(_) => return Err(AuthorizationError::from(err).into()),
+                _ => return Err(err.into())
+            }
+        }
+    };
 
     Ok(token_data.claims.sub())
 }

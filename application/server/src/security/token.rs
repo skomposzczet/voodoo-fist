@@ -38,7 +38,7 @@ pub fn create_jwt(user: &User) -> Result<String, Error> {
         &Header::default(), 
         &claims, 
         &EncodingKey::from_secret(get_secret()?.as_bytes())
-    ).map_err(|err| Error::JTTokenError(err))
+    ).map_err(|err| Error::JWTokenError(err))
 }
 
 pub fn decode_jwt(token: &String) -> Result<TokenData::<Claims>, Error> {
@@ -46,13 +46,12 @@ pub fn decode_jwt(token: &String) -> Result<TokenData::<Claims>, Error> {
         token, 
         &DecodingKey::from_secret(get_secret()?.as_bytes()), 
         &Validation::default()
-    ).map_err(|err| Error::JTTokenError(err))
+    ).map_err(|err| Error::JWTokenError(err))
 }
 
 pub fn jwt_from_header(headers: &HeaderMap<HeaderValue>) -> Option<String> {
     let header = headers.get(AUTHORIZATION)?;
-    let auth_header = std::str::from_utf8(header.as_bytes())
-        .ok()?;
+    let auth_header = std::str::from_utf8(header.as_bytes()).ok()?;
 
     if !auth_header.starts_with(BEARER) {
         return None;

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use bson::{Document, oid::ObjectId, doc};
-use super::{Error, Db, db, from_document};
+use super::{Error, Db, db, from_document, BsonError};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -31,14 +31,17 @@ impl TodoItem {
     }
 
     pub async fn add_to_db(db: Arc<Db>, item: &TodoItem) -> Result<(), Error> {
-        let document = bson::to_bson(&item).map_err(|_| Error::BsonError)?
-            .as_document().ok_or(Error::BsonError)?
+        let document = bson::to_bson(&item)
+            .map_err(|err| BsonError::from(err))?
+            .as_document().ok_or(BsonError::ConversionError)?
             .to_owned();
+
         let db = db
             .database("voodoofist")
             .collection("item");
+
         db.insert_one(document, None).await
-            .map_err(|_| Error::DbError("Couldn't add item"))?;
+            .map_err(|_| Error::DbError("insert", format!("{:?}", item)))?;
         Ok(())
     }
 
@@ -60,7 +63,7 @@ impl TodoItem {
             .collection::<Document>("item");
         let filter = doc! {"_id": item_oid};
         let result = db.delete_one(filter, None).await
-            .map_err(|_| Error::DbError("Couldn't delete item"))?;
+            .map_err(|_| Error::DbError("delete", format!("{:?}", item_oid)))?;
         Ok(result.deleted_count)
     }
 
@@ -70,11 +73,13 @@ impl TodoItem {
             .database("voodoofist")
             .collection::<TodoItem>("item");
         let mut cursor = dbc.find(filter, None).await
-            .map_err(|_| Error::DbError("Could't fetch items"))?;
+            .map_err(|_| Error::DbError("delete items", format!("{:?}", owning_list_id)))?;
         let mut counter: u64 = 0;
 
-        while cursor.advance().await.map_err(|_| Error::DbError("Couldn't advance cursor"))? {
-            let oid = cursor.current().get_object_id("_id").map_err(|_| Error::BsonError)?;
+        while cursor.advance().await
+            .map_err(|_| Error::DbError("advance cursor deleting list", format!("{:?}", owning_list_id)))? {
+            let oid = cursor.current().get_object_id("_id")
+                .map_err(|err| BsonError::from(err))?;
             counter += Self::delete(db.clone(), &oid).await?;
         }
 
@@ -97,7 +102,7 @@ impl TodoItem {
             .collection::<Document>("item");
 
         let count = db.update_one(filter, update, None).await
-                .map_err(|_| Error::DbError("Couldn't patch list"))?.modified_count;
+                .map_err(|_| Error::DbError("patch", format!("{:?}", patch)))?.modified_count;
         
         Ok(count)
     }

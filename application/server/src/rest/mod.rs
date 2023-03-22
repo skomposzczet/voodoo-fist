@@ -1,5 +1,5 @@
 pub mod user;
-pub mod todo;
+pub mod list;
 pub mod todo_item;
 
 use std::{sync::Arc, convert::Infallible};
@@ -62,7 +62,7 @@ impl From<error::AuthorizationError> for warp::Rejection {
 
 pub fn routes(db: Arc<Db>) -> impl Filter<Extract = (impl Reply,), Error = Infallible> + Clone {
     user::account_paths(db.clone())
-        .or(todo::todo_list_paths(db.clone()))
+        .or(list::todo_list_paths(db.clone()))
         .or(todo_item::todo_item_paths(db.clone()))
         .recover(handle_rejection)
 }

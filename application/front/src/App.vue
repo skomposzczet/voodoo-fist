@@ -1,18 +1,27 @@
 <template>
   <nav>
     <h1>VooDoo</h1>
-    <form @submit="foo">
+    <form >
       <input type="text" placeholder="login" v-model="login">
       <input type="password" placeholder="password" v-model="pw">
-      <button type="submit">Login</button>
+      <button @click="login_handle">Login</button>
     </form>
-    <button @click="bar()">Test</button>
+    <form >
+      <input type="text" placeholder="login" v-model="login">
+      <input type="text" placeholder="email" v-model="email">
+      <input type="password" placeholder="password" v-model="pw">
+      <button @click="register">Register</button>
+    </form>
+    <button @click="test">Test</button>
+    <button @click="logout">Logout</button>
   </nav>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import axios from 'axios';
+import { LoginUser, RegisterUser } from './services/auth-service';
+import authHeader from './services/auth-header'
 
 export default defineComponent({
   name: 'app',
@@ -20,32 +29,39 @@ export default defineComponent({
     return {
       login: '',
       pw: '',
+      email: '',
     }
   },
   methods: {
-    async foo() {
-      const url = 'api/login'
-      const data = {
+    async login_handle(evt: Event) {
+      evt.preventDefault();
+      const user: LoginUser = {
         email: this.login,
         password: this.pw,
       };
-      const res = await axios.post(url, data, {
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json;charset=UTF-8",
-          },
-        });
-      localStorage.setItem('token', res.data.data.jwtoken);
+      this.$store.dispatch('auth/login', user);
     },
-    async bar() {
+    async register(evt: Event) {
+      evt.preventDefault();
+      const user: RegisterUser = {
+        email: this.email,
+        username: this.login,
+        password: this.pw,
+      };
+      this.$store.dispatch('auth/register', user);
+    },
+    async test() {
       const config = {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: authHeader()
       };
       axios.get( 
         'api/lists',
         config
       ).then(console.log).catch(console.log);
-    }
+    },
+    logout() {
+      this.$store.dispatch('auth/logout');
+    },
   }
 })
 

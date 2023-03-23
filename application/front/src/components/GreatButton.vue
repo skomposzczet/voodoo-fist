@@ -3,7 +3,9 @@
 </template>
 
 <script lang="ts">
-export default {
+import { defineComponent } from 'vue';
+
+export default defineComponent({
     name: 'GreatButton',
     props: {
         text: String,
@@ -13,7 +15,7 @@ export default {
             this.$emit('btn-click')
         },
     },
-}
+});
 </script>
 
 <style scoped>

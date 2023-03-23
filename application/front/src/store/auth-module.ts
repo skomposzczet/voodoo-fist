@@ -22,6 +22,7 @@ export const auth = {
                 commit('loginSuccess');
             } catch(err) {
                 commit('loginFailure');
+                throw err;
             }
         },
         logout({ commit }: {commit: Commit}) {
@@ -34,6 +35,7 @@ export const auth = {
                 commit('registerSuccess');
             } catch(err) {
                 commit('registerFailure');
+                throw err;
             }
         }
     },

@@ -99,3 +99,7 @@ input:focus {
 .swal-button--cancel:active {
     background-color: black;
 }
+.hvr:hover {
+    color: gray;
+    cursor: pointer;
+}

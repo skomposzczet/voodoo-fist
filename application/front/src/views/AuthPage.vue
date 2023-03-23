@@ -73,10 +73,3 @@ export default defineComponent({
     },
 });
 </script>
-
-<style>
-.hvr:hover {
-    color: gray;
-    cursor: pointer;
-}
-</style>

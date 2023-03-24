@@ -37,7 +37,7 @@ export default defineComponent({
         set_color(color: string) {
             const vs = color.slice(4, -1).split(',').map(v => parseInt(v));
             const new_color: Color = {r: vs[0], g: vs[1], b: vs[2]};
-            const patch: ListPatch = {_id: this.list._id, color: new_color, title: null};
+            const patch: ListPatch = {_id: this.list._id, color: new_color};
             clearTimeout(this.timer);
             this.timer = setTimeout(() => (
                 this.$emit('change-color', patch)

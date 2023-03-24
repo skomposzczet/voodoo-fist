@@ -4,19 +4,19 @@ import authHeader from "./auth-header";
 
 class DataService {
     get_lists() {
-        return axios.get('api/lists', { headers: authHeader() });
+        return axios.get('/api/lists', { headers: authHeader() });
     }
 
     patch_list(patch: ListPatch) {
-        return axios.patch('api/list', patch, {headers: authHeader()});
+        return axios.patch('/api/list', patch, { headers: authHeader() });
     }
 
     delete(endpoint: string, id: MongoID) {
-        return axios.delete('api/' + endpoint, { headers: authHeader(), data: id });
+        return axios.delete('/api/' + endpoint, { headers: authHeader(), data: id });
     }
 
     new_list(title: string) { 
-        return axios.post('api/list', {title: title}, { headers: authHeader() })
+        return axios.post('/api/list', {title: title}, { headers: authHeader() })
     }
 
     get_items(list_id: MongoID) {

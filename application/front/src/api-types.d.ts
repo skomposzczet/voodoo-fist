@@ -20,9 +20,9 @@ interface Lists {
 }
 
 interface ListPatch {
-    _id: MongoID | null,
-    title: string | null,
-    color: Color | null,
+    _id: MongoID,
+    title?: string | null,
+    color?: Color | null,
 }
 
 interface TodoItem {

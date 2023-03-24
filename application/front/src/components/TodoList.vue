@@ -2,7 +2,9 @@
     <div class="listitem" @mouseover="toggle_hovered(true)" @mouseout="toggle_hovered(false)">
         <div class="title">
             <ColorPicker shape="circle" :pureColor="list.color" :disableAlpha="true" @update:pureColor="set_color"/>
-            <h2>{{ list.title }}</h2>
+            <router-link :to="{path: '/list/' + list._id.$oid}">
+                <h2>{{ list.title }}</h2>
+            </router-link><br>
         </div>
         <Icon v-show="hovered" icon="ion:trash-sharp" class="delete" @click="delete_list" />
     </div>

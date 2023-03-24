@@ -2,12 +2,18 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import DashboardPage from '../views/DashboardPage.vue'
 import AboutPage from '../views/AboutPage.vue'
 import AuthPage from '../views/AuthPage.vue'
+import ListPage from '../views/ListPage.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
     component: DashboardPage,
+  },
+  {
+    path: '/list/:id',
+    name: 'list',
+    component: ListPage,
   },
   {
     path: '/about',

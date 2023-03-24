@@ -1,8 +1,8 @@
 
 <template>
-    <div :class="['item', item.is_done ? '' : 'done']" @contextmenu="evt => toggle_item(evt, item._id)">
+    <div :class="['item', item.is_done ? '' : 'done']" @contextmenu="evt => toggle_item(evt)">
         <h3>
-            <FancyForm :text="item.text" :font_size="25"/>
+            <FancyForm :text="item.text" :font_size="25" @change-text="rename"/>
             <Icon @click="$emit('delete-item', item._id)" icon="ep:close-bold" class="delete"/>
         </h3>
     </div>
@@ -12,7 +12,7 @@
 import { defineComponent, PropType } from 'vue'
 import {Icon} from "@iconify/vue"
 import FancyForm from "./FancyForm.vue"
-import {MongoID, TodoItem} from '../api-types'
+import {TodoItem, TodoItemPatch} from '../api-types'
 
 export default defineComponent({
     name: "TodoItem",
@@ -24,10 +24,15 @@ export default defineComponent({
         item: {type: Object as PropType<TodoItem>, required: true},
     },
     methods: {
-        toggle_item(e: Event, id: MongoID) {
+        toggle_item(e: Event) {
             e.preventDefault();
-            this.$emit('togle-item', id);
-        }
+            const patch: TodoItemPatch = {_id: this.item._id, is_done: !this.item.is_done};
+            this.$emit('patch-item', patch);
+        },
+        rename(new_text: string) {
+            const patch: TodoItemPatch = {_id: this.item._id, text: new_text};
+            this.$emit('patch-item', patch);
+        },
     },
 });
 </script>

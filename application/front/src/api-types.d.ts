@@ -32,4 +32,10 @@ interface TodoItem {
     is_done: boolean,
 }
 
-export {Lists, List, MongoID, Color, ListPatch, TodoItem};
+interface TodoItemPatch {
+    _id: MongoID,
+    text?: string | null,
+    is_done?: boolean | null,
+}
+
+export {Lists, List, MongoID, Color, ListPatch, TodoItem, TodoItemPatch};

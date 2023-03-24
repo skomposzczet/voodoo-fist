@@ -1,4 +1,4 @@
-import { ListPatch, MongoID } from '@/api-types';
+import { ListPatch, MongoID, TodoItemPatch } from '@/api-types';
 import axios from 'axios';
 import authHeader from "./auth-header";
 
@@ -21,6 +21,10 @@ class DataService {
 
     get_items(list_id: MongoID) {
         return axios.post('/api/items', {$oid: list_id.$oid}, { headers: authHeader() })
+    }
+
+    patch_item(patch: TodoItemPatch) {
+        return axios.patch('/api/item', patch, { headers: authHeader() })
     }
 }
 

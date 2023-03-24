@@ -61,6 +61,9 @@ export default defineComponent({
         },
         on_submit(e: Event) {
             e.preventDefault();
+            if (!this.addable) {
+                return;
+            }
             this.$emit('new-list', this.text);
             setTimeout(this.on_click, 200);
             setTimeout(() => {this.text = ''; this.on_input()}, 600);

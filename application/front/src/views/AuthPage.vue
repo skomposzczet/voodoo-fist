@@ -29,6 +29,7 @@ export default defineComponent({
     components: {
         GreatButton,
     },
+    emits: ['change-color', 'reset-color'],
     data() {
         return {
             log_reg_switch: true,

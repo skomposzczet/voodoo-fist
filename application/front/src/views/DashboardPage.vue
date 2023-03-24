@@ -22,6 +22,7 @@ export default defineComponent({
             lists: [] as List[],
         }
     },
+    emits: ['change-color', 'reset-color'],
     methods: {
         handle_err(error: AxiosError) {
             console.log(error);

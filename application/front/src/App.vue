@@ -2,7 +2,7 @@
   <div class="wrapper" v-bind:style="bgc">
     <div class="container">
       <MyHeader title="VooDoo Fist"/>
-      <router-view></router-view>
+      <router-view @change-color="change_color" @reset-color="reset_color"></router-view>
       <MyFooter />
     </div>
   </div>
@@ -20,11 +20,20 @@ export default defineComponent({
     MyHeader,
     MyFooter,
   },
+  emits: ['change-color', 'reset-color'],
   data() {
     return {
       bgc: {
         backgroundColor: '#262A33',
       },
+    }
+  },
+  methods: {
+    reset_color() {
+      this.bgc.backgroundColor = '#262A33';
+    },
+    change_color(color: string) {
+      this.bgc.backgroundColor = color;
     }
   },
 });

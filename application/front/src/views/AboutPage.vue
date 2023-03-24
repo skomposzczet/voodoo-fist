@@ -8,5 +8,6 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
     name: 'AboutPage',
+    emits: ['change-color', 'reset-color'],
 });
 </script>

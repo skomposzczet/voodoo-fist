@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import {TodoItem as TodoItem_t, TodoItemPatch, MongoID, TodoItemNew} from '../api-types'
+import {TodoItem as TodoItem_t, TodoItemPatch, MongoID, TodoItemNew, Color} from '../api-types'
 import DataService from '../services/data-service'
 import FancyForm from '@/components/FancyForm.vue';
 import TodoItem from '@/components/TodoItem.vue';
@@ -35,6 +35,7 @@ export default defineComponent({
             items: [] as TodoItem_t[], 
         }
     },
+    emits: ['change-color', 'reset-color'],
     methods: {
         handle_err(error: AxiosError) {
             console.log(error);
@@ -90,10 +91,19 @@ export default defineComponent({
             } catch(err) {
                 this.handle_err(err as AxiosError);
             }
-        }
+        },
+        change_bgcolor() {
+            const todo_apigetlist: Color = {r: 81, g: 45, b: 167};
+            const color = 'rgb(' + todo_apigetlist.r + ', ' + todo_apigetlist.g + ', ' + todo_apigetlist.b + ')';
+            this.$emit('change-color', color);
+        },
     },
     async created() {
         await this.fetch_set_items();
+        this.change_bgcolor()
+    },
+    beforeUnmount() {
+        this.$emit('reset-color');
     },
 });
 </script>

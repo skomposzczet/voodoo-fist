@@ -1,13 +1,13 @@
 <template>
     <h2 v-if="username !== ''">{{ username }}'s dashboard</h2>
-    <UsersLists :lists="lists" @change-color="patch_list"/>
+    <UsersLists :lists="lists" @change-color="patch_list" @delete-list="delete_list"/>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import authHeader from "../services/auth-header";
 import DataService from "../services/data-service"
-import {List, ListPatch} from "@/api-types"
+import {List, ListPatch, MongoID} from "@/api-types"
 import UsersLists from "../components/UserLists.vue"
 import { AxiosError } from 'axios';
 
@@ -43,7 +43,6 @@ export default defineComponent({
             try {
                 const response = await DataService.get_lists();
                 this.lists = response.data.data.lists;
-                console.log(response);
             } catch(err) {
                 this.handle_err(err);
             }
@@ -55,7 +54,17 @@ export default defineComponent({
             } catch(err) {
                 this.handle_err(err);
             }
-        }
+        },
+        async delete_list(id: MongoID) {
+            try {
+                const res = await DataService.delete('list', id);
+                if (res.status === 200) {
+                    this.lists = this.lists.filter(list => (list._id !== id));
+                }
+            } catch(err) {
+                this.handle_err(err);
+            }
+        },
     },
     async created() {
         await this.fetch_set_username();

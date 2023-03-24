@@ -1,6 +1,6 @@
 <template>
     <div :key="list._id.$oid" v-for="list in lists">
-        <TodoList :list="list" @change-color="patch => $emit('change-color', patch)"/>
+        <TodoList :list="list" @change-color="patch => $emit('change-color', patch)" @delete-list="id => $emit('delete-list', id)"/>
     </div>
 </template>
 <script lang="ts">
@@ -16,6 +16,6 @@ export default defineComponent({
     props: {
         lists: {type: Object as PropType<Array<List>>}
     },
-    emits: ['change-color'],
+    emits: ['change-color', 'delete-list'],
 });
 </script>

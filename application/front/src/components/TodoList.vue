@@ -39,8 +39,9 @@ export default defineComponent({
         },
         async delete_list() {
             const accepted = await swal('You sure?', { buttons: ['nah', 'sure']});
-            if (accepted)
-                console.log('will delete list');
+            if (accepted) {
+                this.$emit('delete-list', this.list._id);
+            }
         },
         toggle_hovered(value: boolean) {
             this.hovered = value;

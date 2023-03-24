@@ -28,6 +28,7 @@ export default defineComponent({
     data() {
         return {
             hovered: false,
+            timer: undefined as | number | undefined,
         }
     },
     methods: {
@@ -35,7 +36,10 @@ export default defineComponent({
             const vs = color.slice(4, -1).split(',').map(v => parseInt(v));
             const new_color: Color = {r: vs[0], g: vs[1], b: vs[2]};
             const patch: ListPatch = {_id: this.list._id, color: new_color, title: null};
-            this.$emit('change-color', patch);
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => (
+                this.$emit('change-color', patch)
+            ), 2000);
         },
         async delete_list() {
             const accepted = await swal('You sure?', { buttons: ['nah', 'sure']});

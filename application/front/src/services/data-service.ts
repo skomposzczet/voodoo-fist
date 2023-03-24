@@ -14,6 +14,10 @@ class DataService {
     delete(endpoint: string, id: MongoID) {
         return axios.delete('api/' + endpoint, { headers: authHeader(), data: id });
     }
+
+    new_list(title: string) { 
+        return axios.post('api/list', {title: title}, { headers: authHeader() })
+    }
 }
 
 export default new DataService();

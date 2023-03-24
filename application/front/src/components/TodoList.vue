@@ -12,7 +12,7 @@
 import { defineComponent, PropType } from "vue";
 import {Icon} from "@iconify/vue"
 import swal from 'sweetalert';
-import {List} from "@/api-types"
+import {List, ListPatch, Color} from "@/api-types"
 
 export default defineComponent({
     name: "ListItem",
@@ -33,7 +33,9 @@ export default defineComponent({
     methods: {
         set_color(color: string) {
             const vs = color.slice(4, -1).split(',').map(v => parseInt(v));
-            console.log('will change color ; ' + vs)
+            const new_color: Color = {r: vs[0], g: vs[1], b: vs[2]};
+            const patch: ListPatch = {_id: this.list._id, color: new_color, title: null};
+            this.$emit('change-color', patch);
         },
         async delete_list() {
             const accepted = await swal('You sure?', { buttons: ['nah', 'sure']});

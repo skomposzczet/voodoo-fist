@@ -19,4 +19,10 @@ interface Lists {
     lists: Array<List>,
 }
 
-export {Lists, List, MongoID, Color};
+interface ListPatch {
+    _id: MongoID | null,
+    title: string | null,
+    color: Color | null,
+}
+
+export {Lists, List, MongoID, Color, ListPatch};

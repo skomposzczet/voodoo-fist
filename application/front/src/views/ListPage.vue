@@ -9,12 +9,12 @@
     <div :key="item._id.$oid" v-for="item in items">
             <TodoItem :item="item" @delete-item="delete_item" @patch-item="patch_item"/>
     </div>
-    <NewItem/>
+    <NewItem @add-item="add_item"/>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import {TodoItem as TodoItem_t, TodoItemPatch, MongoID} from '../api-types'
+import {TodoItem as TodoItem_t, TodoItemPatch, MongoID, TodoItemNew} from '../api-types'
 import DataService from '../services/data-service'
 import FancyForm from '@/components/FancyForm.vue';
 import TodoItem from '@/components/TodoItem.vue';
@@ -75,6 +75,20 @@ export default defineComponent({
                 }
             } catch(err) {
                 this.handle_err(err as AxiosError)
+            }
+        },
+        async add_item(text: string) {
+            try {
+                const id: MongoID = {$oid: this.$route.params.id as string};
+                const item: TodoItemNew = {list_oid: id, text: text};
+                const res = await DataService.new_item(item);
+                if (res.status === 200) {
+                    await this.fetch_set_items();
+                } else {
+                    console.log(res.status);
+                }
+            } catch(err) {
+                this.handle_err(err as AxiosError);
             }
         }
     },

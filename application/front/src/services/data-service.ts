@@ -18,6 +18,10 @@ class DataService {
     new_list(title: string) { 
         return axios.post('api/list', {title: title}, { headers: authHeader() })
     }
+
+    get_items(list_id: MongoID) {
+        return axios.post('/api/items', {$oid: list_id.$oid}, { headers: authHeader() })
+    }
 }
 
 export default new DataService();

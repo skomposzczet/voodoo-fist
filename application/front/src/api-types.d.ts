@@ -25,4 +25,11 @@ interface ListPatch {
     color: Color | null,
 }
 
-export {Lists, List, MongoID, Color, ListPatch};
+interface TodoItem {
+    _id: MongoID,
+    list_id: MongoID,
+    text: string,
+    is_done: boolean,
+}
+
+export {Lists, List, MongoID, Color, ListPatch, TodoItem};

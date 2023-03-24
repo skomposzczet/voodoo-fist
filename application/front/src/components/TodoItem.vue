@@ -1,6 +1,6 @@
 
 <template>
-    <div :class="['item', item.is_done ? '' : 'done']" @contextmenu="evt => toggle_item(evt)">
+    <div :class="['item', item.is_done ? 'done' : '']" @contextmenu="evt => toggle_item(evt)">
         <h3>
             <FancyForm :text="item.text" :font_size="25" @change-text="rename"/>
             <Icon @click="$emit('delete-item', item._id)" icon="ep:close-bold" class="delete"/>

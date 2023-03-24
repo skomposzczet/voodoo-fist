@@ -9,6 +9,7 @@
     <div :key="item._id.$oid" v-for="item in items">
             <TodoItem :item="item" @delete-item="delete_item" @patch-item="patch_item"/>
     </div>
+    <NewItem/>
 </template>
 
 <script lang="ts">
@@ -19,6 +20,7 @@ import FancyForm from '@/components/FancyForm.vue';
 import TodoItem from '@/components/TodoItem.vue';
 import {Icon} from "@iconify/vue"
 import { AxiosError } from 'axios';
+import NewItem from '@/components/NewItem.vue';
 
 export default defineComponent({
     name: 'ListPage',
@@ -26,6 +28,7 @@ export default defineComponent({
         FancyForm,
         TodoItem,
         Icon,
+        NewItem,
     },
     data() {
         return {

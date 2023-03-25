@@ -4,6 +4,8 @@ use dotenv;
 use bson::{doc, Document};
 use futures::TryStreamExt;
 
+use super::DATABASE;
+
 const MONGO_USER: &str = "MONGO_USER";
 const MONGO_PW: &str = "MONGO_PW";
 const MONGO_HOST: &str = "MONGO_HOST";
@@ -22,7 +24,7 @@ pub async fn init_db() -> Db {
 
 pub async fn get_by(db: &Db, filter: &Document, collection: &String) -> Result<Option<Document>, Error> {
     let db = db
-        .database("voodoofist")
+        .database(DATABASE)
         .collection::<mongodb::bson::Document>(collection);
 
     let document = db.find_one(filter.clone(), None)
@@ -32,9 +34,9 @@ pub async fn get_by(db: &Db, filter: &Document, collection: &String) -> Result<O
     Ok(document)
 }
 
-pub async fn get_all_in_vec(db: &Db, filter: Document, options: impl Into<Option<FindOptions>>, collection: &String) -> Result<Vec<Document>, Error> {
+pub async fn get_all_in_vec(db: &Db, filter: Document, options: impl Into<Option<FindOptions>>, collection: &str) -> Result<Vec<Document>, Error> {
     let db = db
-        .database("voodoofist")
+        .database(DATABASE)
         .collection::<mongodb::bson::Document>(collection);
 
     let cursor = db.find(filter.clone(), options).await
@@ -59,7 +61,7 @@ fn make_client_uri() -> Result<String, Box<dyn std::error::Error>> {
 }
 
 async fn check_db_conn(db: &Db) -> Result<(), Error> {
-    db.database("voodoofist")
+    db.database(DATABASE)
         .run_command(doc! {"ping": 1}, None)
         .await
         .map_err(|_| Error::CouldNotConnectToDB)?;

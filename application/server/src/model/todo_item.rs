@@ -3,6 +3,9 @@ use std::sync::Arc;
 use bson::{Document, oid::ObjectId, doc};
 use super::{Error, Db, db, from_document, BsonError};
 use serde::{Serialize, Deserialize};
+use super::DATABASE;
+
+const COLLECTION: &'static str = "item";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TodoItem {
@@ -37,8 +40,8 @@ impl TodoItem {
             .to_owned();
 
         let db = db
-            .database("voodoofist")
-            .collection("item");
+            .database(DATABASE)
+            .collection(COLLECTION);
 
         db.insert_one(document, None).await
             .map_err(|_| Error::DbError("insert", format!("{:?}", item)))?;
@@ -48,7 +51,7 @@ impl TodoItem {
     pub async fn get_items_from_list(db: Arc<Db>, owning_list_id: &ObjectId) -> Result<Vec<TodoItem>, Error> {
         let filter = doc!{"list_id": owning_list_id};
         
-        let documents = db::get_all_in_vec(&db, filter, None, &String::from("item")).await?;
+        let documents = db::get_all_in_vec(&db, filter, None, COLLECTION).await?;
         let mut items: Vec<TodoItem> = vec![];
         for doc in documents {
             let list = from_document(doc.clone())?;
@@ -64,8 +67,8 @@ impl TodoItem {
         };
 
         let db = db
-            .database("voodoofist")
-            .collection::<Document>("item");
+            .database(DATABASE)
+            .collection::<Document>(COLLECTION);
         let count = db.delete_one(filter, None).await
             .map_err(|_| Error::DbError("delete", format!("{:?}", item_oid)))?
             .deleted_count;
@@ -79,8 +82,8 @@ impl TodoItem {
         };
 
         let dbc = db
-            .database("voodoofist")
-            .collection::<TodoItem>("item");
+            .database(DATABASE)
+            .collection::<TodoItem>(COLLECTION);
         let mut cursor = dbc.find(filter, None).await
             .map_err(|_| Error::DbError("delete items", format!("{:?}", owning_list_id)))?;
         let mut counter: u64 = 0;
@@ -109,8 +112,8 @@ impl TodoItem {
         let update = doc! {"$set": update};
         let filter = doc! {"_id": patch._id};
         let db = db
-            .database("voodoofist")
-            .collection::<Document>("item");
+            .database(DATABASE)
+            .collection::<Document>(COLLECTION);
 
         let count = db.update_one(filter, update, None).await
                 .map_err(|_| Error::DbError("patch", format!("{:?}", patch)))?.modified_count;

@@ -4,6 +4,9 @@ use mongodb::bson::oid::ObjectId;
 use crate::model::{Db, db, Error};
 use super::{objectid_from_str, from_document, BsonError};
 use crate::error;
+use super::DATABASE;
+
+const COLLECTION: &'static str  = "user";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
@@ -43,8 +46,8 @@ impl User {
             .ok_or(Error::BsonConvError(error::BsonError::ConversionError))?;
 
         let userdb = db
-            .database("voodoofist")
-            .collection::<mongodb::bson::Document>("user");
+            .database(DATABASE)
+            .collection::<mongodb::bson::Document>(COLLECTION);
 
         userdb.insert_one(document.to_owned(), None).await
             .map_err(|_| Error::DbError("insert", format!("{:?}", user)))?;

@@ -11,6 +11,8 @@ use bson::{oid::ObjectId, Document, Bson};
 use thiserror::Error;
 use crate::error::BsonError;
 
+const DATABASE: &'static str = "voodoofist";
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[error(transparent)]

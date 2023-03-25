@@ -3,7 +3,7 @@
         <router-link to="/">
             <Icon icon="ion:chevron-left" class="goback"/>
         </router-link>
-        <FancyForm text="todo, api get list" :font_size="25"/>
+        <FancyForm v-if="title !== ''" :text=title :font_size="25"/>
         <p style="font-size: 10px; color: grey">{{ $route.params.id }}</p>
     </div>
     <div :key="item._id.$oid" v-for="item in items">
@@ -13,8 +13,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import {TodoItem as TodoItem_t, TodoItemPatch, MongoID, TodoItemNew, Color} from '../api-types'
+import { defineComponent, PropType } from 'vue';
+import {TodoItem as TodoItem_t, TodoItemPatch, MongoID, TodoItemNew, Color, List} from '../api-types'
 import DataService from '../services/data-service'
 import FancyForm from '@/components/FancyForm.vue';
 import TodoItem from '@/components/TodoItem.vue';
@@ -33,6 +33,7 @@ export default defineComponent({
     data() {
         return {
             items: [] as TodoItem_t[], 
+            title: '',
         }
     },
     emits: ['change-color', 'reset-color'],
@@ -51,6 +52,18 @@ export default defineComponent({
                 this.items = res.data.data.items;
             } catch(err) {
                 this.handle_err(err as AxiosError)
+            }
+        },
+        async fetch_set_current_list() {
+            try {
+                const res = await DataService.get_list(this.$route.params.id as string);
+                if (res.status === 200) {
+                    this.title = res.data.data.list.title;
+                    console.log(this.title);
+                    return res.data.data.list.color;
+                }
+            } catch(err) {
+                this.handle_err(err as AxiosError);
             }
         },
         async delete_item(id: MongoID) {
@@ -92,15 +105,15 @@ export default defineComponent({
                 this.handle_err(err as AxiosError);
             }
         },
-        change_bgcolor() {
-            const todo_apigetlist: Color = {r: 81, g: 45, b: 167};
-            const color = 'rgb(' + todo_apigetlist.r + ', ' + todo_apigetlist.g + ', ' + todo_apigetlist.b + ')';
+        change_bgcolor(rgb: Color) {
+            const color = 'rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')';
             this.$emit('change-color', color);
         },
     },
     async created() {
         await this.fetch_set_items();
-        this.change_bgcolor()
+        let color: Color = await this.fetch_set_current_list();
+        this.change_bgcolor(color)
     },
     beforeUnmount() {
         this.$emit('reset-color');

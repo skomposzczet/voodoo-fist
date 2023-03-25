@@ -7,6 +7,10 @@ class DataService {
         return axios.get('/api/lists', { headers: authHeader() });
     }
 
+    get_list(id: string) {
+        return axios.get('/api/list/' + id, { headers: authHeader() });
+    }
+
     patch_list(patch: ListPatch) {
         return axios.patch('/api/list', patch, { headers: authHeader() });
     }

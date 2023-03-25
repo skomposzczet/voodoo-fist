@@ -27,36 +27,44 @@ pub struct LoginResponse {
 }
 
 pub fn account_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone {
-    let with_db = warp::any().map(move || db.clone());
+    let with_db = warp::any()
+        .map(move || db.clone());
 
-    let register = warp::path("register").and(warp::path::end())
+    let register = warp::path("register")
+        .and(warp::path::end())
         .and(warp::post())
         .and(with_db.clone())
         .and(warp::body::json())
         .and_then(register_handle);
 
-    let login = warp::path("login").and(warp::path::end())
+    let login = warp::path("login")
+        .and(warp::path::end())
         .and(warp::post())
         .and(with_db.clone())
         .and(warp::body::json())
         .and_then(login_handle);
 
-    let dashboard = warp::path("dashboard").and(warp::path::end())
+    let dashboard = warp::path("dashboard")
+        .and(warp::path::end())
         .and(warp::get())
         .and(with_db.clone())
         .and(with_auth())
         .and_then(dashboard_handle);
 
-    register.or(login).or(dashboard)
+    register
+        .or(login)
+        .or(dashboard)
 }
 
 async fn login_handle(db: Arc<Db>, body: LoginBody) -> Result<Json, Rejection> {
     let user = User::get_by_email(&db, &body.email).await
         .map_err(|_| AuthorizationError::InvalidCredentials("email"))?;
+
     if !user.password_matches(&hashed_password(&body.password)) {
         return Err(AuthorizationError::InvalidCredentials("password").into());
     }
     let token = token::create_jwt(&user)?;
+
     json_response(&LoginResponse {jwtoken: token})
 }
 
@@ -65,10 +73,18 @@ async fn register_handle(db: Arc<Db>, body: RegisterBody) -> Result<Json, Reject
     if !is_unique {
         return Err(model::Error::NotUnique("email").into());
     }
-    let new_user = User::new(&body.email, &body.username, &hashed_password(&body.password));
+
+    let new_user = User::new(
+        &body.email,
+        &body.username,
+        &hashed_password(&body.password)
+    );
     User::add_to_db(&db, &new_user).await?;
 
-    json_response(&"Success")
+    let content = json!({
+        "Message": "Success",
+    });
+    json_response(&content)
 }
 
 async fn is_unique_email(db: &Db, email: &String) -> Result<bool, model::Error> {
@@ -86,6 +102,8 @@ async fn is_unique_email(db: &Db, email: &String) -> Result<bool, model::Error> 
 async fn dashboard_handle(db: Arc<Db>, id: String) -> Result<Json, Rejection> {
     let user = User::get_by_id(&db, &id).await?;
 
-    let response = json!({"username": user.username()});
-    json_response(&response)
+    let content = json!({
+        "username": user.username()
+    });
+    json_response(&content)
 }

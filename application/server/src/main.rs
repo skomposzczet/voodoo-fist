@@ -13,6 +13,7 @@ use warp::Filter;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     pretty_env_logger::init();
+
     info!("Connecting do db...");
     let db = Arc::new(model::db::init_db().await);
     info!("Successfully connected to db.");
@@ -26,6 +27,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .with(cors)
         .with(log);
 
+    info!("Starting server...");
     warp::serve(routes)
         .run(([0, 0, 0, 0], 8000)).await;
     Ok(())

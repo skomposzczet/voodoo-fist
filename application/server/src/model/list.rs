@@ -16,7 +16,11 @@ impl Rgb {
         Rgb{r, g, b}
     }
     pub fn random() -> Rgb {
-        Self::new(random::<u8>(), random::<u8>(), random::<u8>())
+        Self::new(
+            random::<u8>(),
+            random::<u8>(),
+            random::<u8>(),
+        )
     }
 }
 
@@ -81,6 +85,7 @@ impl List {
     pub async fn get_users_lists(db: &Db, uid: &str) -> Result<Vec<List>, Error> {
         let oid = objectid_from_str(uid)?;
         let filter = doc!{"owner_id": oid};
+
         let documents = db::get_all_in_vec(db, filter, None, &String::from("list")).await?;
         let mut lists: Vec<List> = vec![];
         for doc in documents {
@@ -92,15 +97,21 @@ impl List {
     }
 
     pub async fn delete(db: &Db, oid: &ObjectId) -> Result<u64, Error> {
-        let db = db.database("voodoofist").collection::<Document>("list");
         let filter = doc! {"_id": oid};
-        let result = db.delete_one(filter, None).await
-            .map_err(|_| Error::DbError("delete", format!("{:?}", oid)))?;
-        Ok(result.deleted_count)
+
+        let db = db
+            .database("voodoofist")
+            .collection::<Document>("list");
+        let count = db.delete_one(filter, None).await
+            .map_err(|_| Error::DbError("delete", format!("{:?}", oid)))?
+            .deleted_count;
+
+        Ok(count)
     }
 
     pub async fn update(db: &Db, patch: &ListPatch) -> Result<u64, Error>{
         let mut update = Document::new();
+
         if let Some(new_title) = &patch.title {
             update.insert("title", new_title);
         }
@@ -110,10 +121,13 @@ impl List {
         
         let update = doc! {"$set": update};
         let filter = doc! {"_id": patch._id};
-        let db = db.database("voodoofist").collection::<Document>("list");
+        let db = db
+            .database("voodoofist")
+            .collection::<Document>("list");
 
         let count = db.update_one(filter, update, None).await
-                .map_err(|_| Error::DbError("patch", format!("{:?}", patch)))?.modified_count;
+                .map_err(|_| Error::DbError("patch", format!("{:?}", patch)))?
+                .modified_count;
         
         Ok(count)
     }

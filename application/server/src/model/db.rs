@@ -48,11 +48,14 @@ pub async fn get_all_in_vec(db: &Db, filter: Document, options: impl Into<Option
 
 fn make_client_uri() -> Result<String, Box<dyn std::error::Error>> {
     dotenv::dotenv()?;
+
     let user = dotenv::var(MONGO_USER)?;
     let password = dotenv::var(MONGO_PW)?;
     let host = dotenv::var(MONGO_HOST)?;
     let port = dotenv::var(MONGO_PORT)?;
-    Ok(format!("mongodb://{}:{}@{}:{}", user, password, host, port))
+
+    Ok(format!("mongodb://{}:{}@{}:{}",
+        user, password, host, port))
 }
 
 async fn check_db_conn(db: &Db) -> Result<(), Error> {
@@ -60,5 +63,6 @@ async fn check_db_conn(db: &Db) -> Result<(), Error> {
         .run_command(doc! {"ping": 1}, None)
         .await
         .map_err(|_| Error::CouldNotConnectToDB)?;
+    
     Ok(())
 }

@@ -33,5 +33,6 @@ pub fn objectid_from_str(id: &str) -> Result<ObjectId, Error> {
 }
 
 pub fn from_document<T: DeserializeOwned>(document: Document) -> Result<T, BsonError> {
-    bson::from_bson(Bson::Document(document)).map_err(|_| BsonError::ConversionError)
+    bson::from_bson(Bson::Document(document))
+        .map_err(|_| BsonError::ConversionError)
 }

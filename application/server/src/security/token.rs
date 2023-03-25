@@ -17,14 +17,18 @@ pub struct Claims {
 }
 
 impl Claims {
-    pub fn from_user(user: &User) -> Claims {
-        Claims {
-            sub: format!("{:?}", user.id().unwrap()),
+    pub fn from_user(user: &User) -> Result<Claims, Error> {
+        let claims = Claims {
+            sub: format!("{:?}", user.id()
+                .ok_or(Error::InvalidClaimData("user id is None"))?
+            ),
             exp: Utc::now()
                 .checked_add_signed(Duration::minutes(TOKEN_DURATION))
-                .expect("Token expiration date exceeded")
+                .ok_or(Error::InvalidClaimData("token expiration date exceeded"))?
                 .timestamp() as usize
-        }
+        };
+
+        Ok(claims)
     }
 
     pub fn sub(self: &Self) -> String {
@@ -33,11 +37,12 @@ impl Claims {
 }
 
 pub fn create_jwt(user: &User) -> Result<String, Error> {
-    let claims = Claims::from_user(&user);
+    let claims = Claims::from_user(&user)?;
     encode(
         &Header::default(), 
         &claims, 
-        &EncodingKey::from_secret(get_secret()?.as_bytes())
+        &EncodingKey::from_secret(get_secret()?
+            .as_bytes())
     ).map_err(|err| Error::JWTokenError(err))
 }
 
@@ -56,9 +61,15 @@ pub fn jwt_from_header(headers: &HeaderMap<HeaderValue>) -> Option<String> {
     if !auth_header.starts_with(BEARER) {
         return None;
     }
-    Some(auth_header.trim_start_matches(BEARER).to_owned())
+
+    let token = auth_header
+        .trim_start_matches(BEARER)
+        .to_owned();
+
+    Some(token)
 }
 
 fn get_secret() -> Result<String, Error> {
-    dotenv::var(SECRET_KEY).map_err(|err| Error::EnvError(err))
+    dotenv::var(SECRET_KEY)
+        .map_err(|err| Error::EnvError(err))
 }

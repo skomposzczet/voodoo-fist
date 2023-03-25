@@ -8,7 +8,9 @@ pub enum Error {
     #[error(transparent)]
     EnvError( #[from] dotenv::Error ),
     #[error("Expected key: {0}")]
-    BodyError(&'static str)
+    BodyError(&'static str),
+    #[error("Invalid claim data: {0}")]
+    InvalidClaimData(&'static str),
 }
 
 #[derive(Error, Debug)]

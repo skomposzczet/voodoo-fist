@@ -76,14 +76,18 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
     };
     info!("{}", error_message.message);
 
-    let result = json!({"error": error_message.kind});
+    let result = json!({
+        "error": error_message.kind
+    });
 	let result = warp::reply::json(&result);
 
 	Ok(warp::reply::with_status(result, error_message.status_code))
 }
 
 fn json_response<T: Serialize>(data: &T) -> Result<Json, Rejection> {
-    let response = json!({"data": data});
+    let response = json!({
+        "data": data
+    });
     Ok(warp::reply::json(&response))
 }
 

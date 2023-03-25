@@ -47,6 +47,7 @@ impl TodoItem {
 
     pub async fn get_items_from_list(db: Arc<Db>, owning_list_id: &ObjectId) -> Result<Vec<TodoItem>, Error> {
         let filter = doc!{"list_id": owning_list_id};
+        
         let documents = db::get_all_in_vec(&db, filter, None, &String::from("item")).await?;
         let mut items: Vec<TodoItem> = vec![];
         for doc in documents {
@@ -58,28 +59,38 @@ impl TodoItem {
     }
 
     pub async fn delete(db: Arc<Db>, item_oid: &ObjectId) -> Result<u64, Error> {
+        let filter = doc! {
+            "_id": item_oid
+        };
+
         let db = db
             .database("voodoofist")
             .collection::<Document>("item");
-        let filter = doc! {"_id": item_oid};
-        let result = db.delete_one(filter, None).await
-            .map_err(|_| Error::DbError("delete", format!("{:?}", item_oid)))?;
-        Ok(result.deleted_count)
+        let count = db.delete_one(filter, None).await
+            .map_err(|_| Error::DbError("delete", format!("{:?}", item_oid)))?
+            .deleted_count;
+
+        Ok(count)
     }
 
     pub async fn delete_all_from_list(db: Arc<Db>, owning_list_id: &ObjectId) -> Result<u64, Error> {
-        let filter = doc! {"list_id": owning_list_id};
+        let filter = doc! {
+            "list_id": owning_list_id
+        };
+
         let dbc = db
             .database("voodoofist")
             .collection::<TodoItem>("item");
         let mut cursor = dbc.find(filter, None).await
             .map_err(|_| Error::DbError("delete items", format!("{:?}", owning_list_id)))?;
         let mut counter: u64 = 0;
-
         while cursor.advance().await
-            .map_err(|_| Error::DbError("advance cursor deleting list", format!("{:?}", owning_list_id)))? {
-            let oid = cursor.current().get_object_id("_id")
+            .map_err(|_| Error::DbError("advance cursor deleting list", format!("{:?}", owning_list_id)))? 
+        {
+            let oid = cursor.current()
+                .get_object_id("_id")
                 .map_err(|err| BsonError::from(err))?;
+
             counter += Self::delete(db.clone(), &oid).await?;
         }
 

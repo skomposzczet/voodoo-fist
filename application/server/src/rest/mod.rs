@@ -11,6 +11,8 @@ use crate::{model, error::AuthorizationError};
 use crate::error;
 use crate::{security::token::{jwt_from_header, decode_jwt}, model::Db};
 
+const SEARCH_PATH: &'static str = "search";
+
 #[derive(Debug, Clone)]
 pub struct WebErrorMessage {
 	kind: &'static str,

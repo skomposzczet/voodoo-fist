@@ -12,6 +12,8 @@ use serde_json::json;
 use crate::error::Error;
 use crate::error;
 
+use super::SEARCH_PATH;
+
 pub fn todo_list_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone {
     let with_db = warp::any()
         .map(move || db.clone());
@@ -30,6 +32,13 @@ pub fn todo_list_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,)
         .and(warp::path::param())
         .and(warp::path::end())
         .and_then(get_list_handle);
+
+    let search_list = warp::path(SEARCH_PATH)
+        .and(warp::path("list"))
+        .and(warp::post())
+        .and(common.clone())
+        .and(warp::body::json())
+        .and_then(search_list_handle);
 
     let new_list = warp::path("list")
         .and(warp::path::end())
@@ -54,6 +63,7 @@ pub fn todo_list_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,)
 
     get_lists
         .or(get_list)
+        .or(search_list)
         .or(new_list)
         .or(delete_list)
         .or(patch_list)
@@ -84,6 +94,22 @@ async fn get_list_handle(db: Arc<Db>, oid: String, list_oid: String) -> Result<J
         "list": list
     });
     json_response(&response)
+}
+
+async fn search_list_handle(db: Arc<Db>, oid: String, body: HashMap<String, String>) -> Result<Json, Rejection> {
+    let title = body.get("title")
+        .ok_or(Error::BodyError("title"))?;
+
+    let lists = List::search(&db, &oid, title).await?;
+
+    if lists.len() == 0 {
+        return Err(error::NotFoundError::NotFound("lists with given title").into());
+    }
+
+    let content = json!({
+        "lists": lists
+    });
+    json_response(&content)
 }
 
 async fn post_list_handle(db: Arc<Db>, oid: String, body: HashMap<String, String>) -> Result<Json, Rejection> {

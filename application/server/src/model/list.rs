@@ -117,6 +117,23 @@ impl List {
         Ok(list_opt)
     }
 
+    pub async fn search(db: &Db, uid: &str, title: &str) -> Result<Vec<List>, Error> {
+        let oid = objectid_from_str(uid)?;
+        let filter = doc! {
+            "owner_id": oid,
+            "title": title,
+        };
+
+        let documents = db::get_all_in_vec(db, filter, None, COLLECTION).await?;
+        let mut lists: Vec<List> = vec![];
+        for doc in documents {
+            let list = from_document(doc.clone())?;
+            lists.push(list);
+        }
+
+        Ok(lists)
+    }
+
     pub async fn delete(db: &Db, oid: &ObjectId) -> Result<u64, Error> {
         let filter = doc! {"_id": oid};
 

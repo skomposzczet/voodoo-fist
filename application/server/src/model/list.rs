@@ -1,6 +1,6 @@
 use bson::{doc, bson, oid::ObjectId, Bson, Document};
 use serde::{Serialize, Deserialize};
-use super::{Db, Error, db, objectid_from_str, from_document};
+use super::{Db, Error, db, objectid_from_str, objectid_from_str_raw, from_document};
 use rand::random;
 use crate::error::BsonError;
 
@@ -94,6 +94,24 @@ impl List {
         }
 
         Ok(lists)
+    }
+
+    pub async fn get_users_list(db: &Db, uid: &str, list_id: &str) -> Result<Option<List>, Error> {
+        let oid = objectid_from_str(uid)?;
+        let list_id = objectid_from_str_raw(list_id)?;
+        let filter = doc!{
+            "_id": list_id,
+            "owner_id": oid
+        };
+
+        let db = db
+            .database("voodoofist")
+            .collection::<List>("list");
+
+        let list_opt = db.find_one(filter.clone(), None).await
+            .map_err(|_| Error::DbError("find", format!("{:?}", filter)))?;
+
+        Ok(list_opt)
     }
 
     pub async fn delete(db: &Db, oid: &ObjectId) -> Result<u64, Error> {

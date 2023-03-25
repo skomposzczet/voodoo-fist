@@ -10,6 +10,7 @@ use crate::model::{
 use crate::rest::{json_response, with_auth};
 use serde_json::json;
 use crate::error::Error;
+use crate::error;
 
 pub fn todo_list_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,), Error = Rejection> + Clone {
     let with_db = warp::any()
@@ -22,6 +23,13 @@ pub fn todo_list_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,)
         .and(warp::get())
         .and(common.clone())
         .and_then(get_lists_handle);
+
+    let get_list = warp::path("list")
+        .and(warp::get())
+        .and(common.clone())
+        .and(warp::path::param())
+        .and(warp::path::end())
+        .and_then(get_list_handle);
 
     let new_list = warp::path("list")
         .and(warp::path::end())
@@ -45,6 +53,7 @@ pub fn todo_list_paths(db: Arc<Db>) -> impl Filter<Extract = (impl warp::Reply,)
         .and_then(patch_handle);
 
     get_lists
+        .or(get_list)
         .or(new_list)
         .or(delete_list)
         .or(patch_list)
@@ -55,6 +64,24 @@ async fn get_lists_handle(db: Arc<Db>, oid: String) -> Result<Json, Rejection> {
 
     let response = json!({
         "lists": lists
+    });
+    json_response(&response)
+}
+
+async fn get_list_handle(db: Arc<Db>, oid: String, list_oid: String) -> Result<Json, Rejection> {
+    let result = List::get_users_list(
+        &db, 
+        &oid, 
+        &list_oid
+    ).await?;
+
+    let list = match result {
+        Some(l) => l,
+        None => return Err(error::NotFoundError::NotFound("list").into()),
+    };
+
+    let response = json!({
+        "list": list
     });
     json_response(&response)
 }

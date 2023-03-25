@@ -2,7 +2,7 @@
 <template>
     <div :class="['item', item.is_done ? 'done' : '']" @contextmenu="evt => toggle_item(evt)">
         <h3>
-            <FancyForm :text="item.text" :font_size="27" @change-text="rename"/>
+            <FancyForm :text="item.text" :font_size="20" @change-text="rename"/>
             <Icon @click="$emit('delete-item', item._id)" icon="ep:close-bold" class="delete"/>
         </h3>
     </div>

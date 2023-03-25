@@ -13,8 +13,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import {TodoItem as TodoItem_t, TodoItemPatch, MongoID, TodoItemNew, Color, List} from '../api-types'
+import { defineComponent } from 'vue';
+import {TodoItem as TodoItem_t, TodoItemPatch, MongoID, TodoItemNew, Color} from '../api-types'
 import DataService from '../services/data-service'
 import FancyForm from '@/components/FancyForm.vue';
 import TodoItem from '@/components/TodoItem.vue';

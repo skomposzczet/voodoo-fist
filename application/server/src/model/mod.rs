@@ -28,7 +28,11 @@ pub enum Error {
 }
 
 pub fn objectid_from_str(id: &str) -> Result<ObjectId, Error> {
-    mongodb::bson::oid::ObjectId::from_str(&id[10..34])
+    objectid_from_str_raw(&id[10..34])
+}
+
+pub fn objectid_from_str_raw(id: &str) -> Result<ObjectId, Error> {
+    mongodb::bson::oid::ObjectId::from_str(&id)
         .map_err(|_| Error::InvalidOID)
 }
 

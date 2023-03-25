@@ -34,3 +34,9 @@ pub enum BsonError {
     #[error("Conversion error")]
     ConversionError,
 }
+
+#[derive(Error, Debug)]
+pub enum NotFoundError {
+    #[error("Not found {0}")]
+    NotFound(&'static str),
+}

@@ -41,6 +41,7 @@ impl From<model::Error> for warp::Rejection {
         )
 	}
 }
+
 impl From<error::Error> for warp::Rejection {
 	fn from(other: error::Error) -> Self {
 		WebErrorMessage::rejection(
@@ -50,12 +51,23 @@ impl From<error::Error> for warp::Rejection {
         )
 	}
 }
+
 impl From<error::AuthorizationError> for warp::Rejection {
 	fn from(other: error::AuthorizationError) -> Self {
 		WebErrorMessage::rejection(
             "error::AuthError",
             format!("{}", other),
             StatusCode::UNAUTHORIZED,
+        )
+	}
+}
+
+impl From<error::NotFoundError> for warp::Rejection {
+	fn from(other: error::NotFoundError) -> Self {
+		WebErrorMessage::rejection(
+            "resource not found",
+            format!("{}", other),
+            StatusCode::NOT_FOUND,
         )
 	}
 }

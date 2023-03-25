@@ -63,7 +63,6 @@ export default defineComponent({
                 const res = await DataService.get_list(this.$route.params.id as string);
                 if (res.status === 200) {
                     this.title = res.data.data.list.title;
-                    console.log(this.title);
                     return res.data.data.list.color;
                 }
             } catch(err) {
@@ -88,7 +87,7 @@ export default defineComponent({
                     console.log(res.status);
                     return;
                 }
-                if (patch.is_done) {
+                if (patch.is_done !== undefined && patch.is_done !== null) {
                     this.items[idx].is_done = patch.is_done;
                 }
             } catch(err) {

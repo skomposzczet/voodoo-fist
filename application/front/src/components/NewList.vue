@@ -12,6 +12,8 @@
 import { defineComponent } from "vue"
 import GreatButton from "./GreatButton.vue"
 import DisablableButton from "./DisablableButton.vue"
+import DataService from "../services/data-service";
+import { AxiosError } from "axios";
 
 export default defineComponent({
     name: "NewList",
@@ -69,22 +71,22 @@ export default defineComponent({
             setTimeout(() => {this.text = ''; this.on_input()}, 600);
         },
         on_input() {
+            clearTimeout(this.timer);
             if (this.text.length === 0) {
                 this.addable = false;
                 this.loading = false;
-                clearTimeout(this.timer);
                 this.reason = 'Title cannot be empty';
                 return;
             }
 
             this.loading = true;
-            this.timer = setTimeout(() => (
-                this.allowed()
+            this.timer = setTimeout(async () => (
+                await this.allowed()
             ), 2000);
         },
-        allowed() {
+        async allowed() {
             this.loading = false;
-            const unique = (this.text !== 'todo, rest query checking if unique list title');
+            const unique = await this.is_unique(this.text);
             if (!unique) {
                 this.addable = false;
                 this.reason = 'Not unique';
@@ -92,6 +94,22 @@ export default defineComponent({
             else {
                 this.addable = true;
                 this.reason = '';
+            }
+        },
+        async is_unique(title: string) {
+            try {
+                const json = JSON.parse('{"title": "' + title + '"}');
+                await DataService.search('list', json);
+                return false;
+            } catch(err) {
+                const error = err as AxiosError;
+                if (error.response?.status === 404) {
+                    console.log('retuning  true')
+                    return true;
+                } else if (error.status === 401) {
+                    this.$store.dispatch('auth/logout');
+                    this.$router.push('/auth');
+                }
             }
         }
     },

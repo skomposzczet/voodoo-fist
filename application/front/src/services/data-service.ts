@@ -34,6 +34,10 @@ class DataService {
     new_item(item: TodoItemNew) {
         return axios.post('/api/item', item, { headers: authHeader() });
     }
+
+    search(collection: string, json: JSON) {
+        return axios.post('/api/search/' + collection, json, { headers: authHeader() });
+    }
 }
 
 export default new DataService();

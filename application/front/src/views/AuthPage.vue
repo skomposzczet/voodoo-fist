@@ -49,7 +49,8 @@ export default defineComponent({
             this.log_reg_switch = !this.log_reg_switch;
             this.email = this.username = this.password = this.error = '';
         },
-        async login() {
+        async login(e: Event) {
+            e.preventDefault();
             const user: LoginUser = {email: this.email, password: this.password};
             try {
                 await this.$store.dispatch('auth/login', user);
@@ -62,7 +63,8 @@ export default defineComponent({
                 }
             }
         },
-        async register() {
+        async register(e: Event) {
+            e.preventDefault();
             const user: RegisterUser = {email: this.email, username: this.username, password: this.password};
             try {
                 await this.$store.dispatch('auth/register', user);

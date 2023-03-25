@@ -104,7 +104,6 @@ export default defineComponent({
             } catch(err) {
                 const error = err as AxiosError;
                 if (error.response?.status === 404) {
-                    console.log('retuning  true')
                     return true;
                 } else if (error.status === 401) {
                     this.$store.dispatch('auth/logout');

@@ -40,10 +40,14 @@ export default defineComponent({
     methods: {
         handle_err(error: AxiosError) {
             console.log(error);
-            if (error instanceof AxiosError && error.response?.status === 401) {
+            if (!(error instanceof AxiosError)) {
+                return;
+            } 
+            if (error.response?.status === 401) {
                 this.$store.dispatch('auth/logout');
                 this.$router.push('/auth');
             }
+            this.$router.push('/404');
         },
         async fetch_set_items() {
             try {

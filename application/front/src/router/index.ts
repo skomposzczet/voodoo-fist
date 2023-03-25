@@ -3,6 +3,7 @@ import DashboardPage from '../views/DashboardPage.vue'
 import AboutPage from '../views/AboutPage.vue'
 import AuthPage from '../views/AuthPage.vue'
 import ListPage from '../views/ListPage.vue'
+import NotFound from '../views/NotFound.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -24,6 +25,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/auth',
     name: 'auth',
     component: AuthPage,
+  },
+  {
+    path: '/:catchAll(.*)',
+    name: '404',
+    component: NotFound,
   },
 ]
 

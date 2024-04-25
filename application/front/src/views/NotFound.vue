@@ -1,6 +1,6 @@
 <template>
     <div>
-        <img src="https://cataas.com/cat/says/404%20not%20found?type=png" class="image">
+        <img src="https://cataas.com/cat/says/404%20not%20found?fontColor=white" class="image">
     </div>
 </template>
 <script lang="ts">

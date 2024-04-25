@@ -82,7 +82,7 @@ export default defineComponent({
             this.loading = true;
             this.timer = setTimeout(async () => (
                 await this.allowed()
-            ), 2000);
+            ), 500);
         },
         async allowed() {
             this.loading = false;

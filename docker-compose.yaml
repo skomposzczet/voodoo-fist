@@ -5,8 +5,6 @@ services:
     image: 'mongo:6.0.4'
     expose:
       - "27017"
-    ports:
-      - "27017:27017"
     volumes:
       - './data/db:/data/db'
     environment:
@@ -18,8 +16,16 @@ services:
     build: ./application/server
     environment:
       - RUST_LOG=info
-    ports:
-      - '8000:8000'
+    expose:
+      - "8000"
     depends_on:
       - mongo
+
+  app:
+    image: 'voodoo-app'
+    build: ./application/front
+    ports:
+      - '8000:80'
+    depends_on:
+      - backend
     
